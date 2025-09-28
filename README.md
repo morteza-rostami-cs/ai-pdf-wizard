@@ -12,6 +12,7 @@ A FastAPI + LangChain app for PDFs: upload, summarize, and chat with your docume
 
 ## Features (MVP / Planned)
 
+- [ ] Initial backend & frontend setup and test route
 - [ ] User authentication (OTP + JWT cookie)
 - [ ] Upload PDF & store in GridFS
 - [ ] Show upload progress & status: uploaded / processing / embedding / ready / failed
