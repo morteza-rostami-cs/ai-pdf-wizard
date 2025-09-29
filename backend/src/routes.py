@@ -6,6 +6,8 @@ from typing import Any
 # my imports
 from src.models import User
 from src.schemas import UserCreate
+from src.services import fire_task
+from src.dtos import TaskTypes
 
 # routers 
 user_router = APIRouter(prefix='/users', tags=['users'])
@@ -16,6 +18,16 @@ user_router = APIRouter(prefix='/users', tags=['users'])
 
 @user_router.get(path='')
 async def get_users() -> Any:
+
+  # fire a test task
+  task = await fire_task(
+    task_type= TaskTypes.TEST,
+    payload={
+      "message": "what's up!?"
+    }
+  )
+
+
   users = await User.find_all().to_list()
   return users
 

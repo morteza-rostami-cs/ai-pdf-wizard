@@ -4,10 +4,13 @@ from contextlib import asynccontextmanager
 import motor.motor_asyncio
 from beanie import init_beanie # type: ignore
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorClient
+import asyncio
 
 # my imports ------------------------
 from src.config import settings
-from src.models import User
+from src.models import User, Task
+from src.workers import task_worker_loop
+
 
 # my routes --------------------------
 from src.routes import user_router
@@ -33,13 +36,24 @@ async def lifespan(app: FastAPI):
   # register models
   await init_beanie(
     database=db, # type: ignore
-    document_models=[User]
+    document_models=[User, Task]
   )
 
   # mongodb is connected
   print("✅ MongoDb connected and beanie initialized")
 
   # here -> we setup our async worker (later)
+
+  if db == None:
+    raise Exception("mongo instance is None.")
+
+  asyncio.create_task(
+    task_worker_loop(
+      db=db,
+      interval=5  # 5 seconds
+    )
+  )
+  
 
   yield # everything after this , runs on shutdown
 
