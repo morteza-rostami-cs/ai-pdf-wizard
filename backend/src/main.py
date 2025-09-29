@@ -1,18 +1,58 @@
 from fastapi import FastAPI
 from typing import Any
-#from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager
+import motor.motor_asyncio
+from beanie import init_beanie # type: ignore
+from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorClient
 
 # my imports ------------------------
 from src.config import settings
+from src.models import User
+
+# my routes --------------------------
+from src.routes import user_router
 
 # lifespan -> runs on server start 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+  """ this runs on app startup """
+
+  client: AsyncIOMotorClient[Any] = motor.motor_asyncio.AsyncIOMotorClient(
+    host=settings.MONGO_URI,
+  )
+
+  # instance of database
+  db: AsyncIOMotorDatabase[Any] = client[settings.MONGO_DB_NAME]
+
+  # save db instance globally 
+  from src import config
+
+  config.mongo_client = client
+  config.mongo_db = db
+
+  # register models
+  await init_beanie(
+    database=db, # type: ignore
+    document_models=[User]
+  )
+
+  # mongodb is connected
+  print("✅ MongoDb connected and beanie initialized")
+
+  # here -> we setup our async worker (later)
+
+  yield # everything after this , runs on shutdown
+
+  # close mongodb
+  client.close()
+  print("✅ MongoDB connection closed")
 
 # fast api app
 app = FastAPI(
   title="ai pdf wizard",
   version="0.1.0",
+  # pass lifespan
+  lifespan=lifespan
 )
 
 # /index 
@@ -24,6 +64,12 @@ async def index() -> Any:
     "message": "from /index route",
     "db_name": settings.MONGO_DB_NAME,
   }
+
+# --------------------------
+# routes
+# --------------------------
+
+app.include_router(router=user_router)
 
 # run fastapi server
 if __name__ == "__main__":
