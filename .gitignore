@@ -1,6 +1,51 @@
-venv
 __notes
+venv
+.vscode/
 __pycache__/
 *.pyc
+# Python
+
+**pycache**/
+\*.py\[cod]
+\*.pyo
+\*.pyd
+\*.pycache/
+\*.pytest\_cache/
+\*.env
+\*.venv
+
+# Virtual Environments
+
+venv/
+ENV/
+.env/
 .env
+
+# Distribution / Packaging
+
+build/
+dist/
+\*.egg-info/
+.eggs/
+
+# IDEs
+
 .vscode/
+.idea/
+\*.sublime-project
+\*.sublime-workspace
+
+# Logs
+
+\*.log
+
+# Database / Storage
+
+\*.sqlite3
+\*.db
+
+# OS Files
+
+.DS\_Store
+Thumbs.db
+
