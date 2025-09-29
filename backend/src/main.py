@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from typing import Any
 #from contextlib import asynccontextmanager
 
+# my imports ------------------------
+from src.config import settings
 
 # lifespan -> runs on server start 
 # @asynccontextmanager
@@ -19,7 +21,8 @@ async def index() -> Any:
 
   return {
     "status": "ok",
-    "message": "from /index route"
+    "message": "from /index route",
+    "db_name": settings.MONGO_DB_NAME,
   }
 
 # run fastapi server
