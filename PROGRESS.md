@@ -44,9 +44,28 @@ All daily logs of implemented features, videos, and next steps.
 - Rendered users in UI
 - Fixed CORS issue by enabling FastAPI `CORSMiddleware`
 
+### 🔑 Issue #2 (Auth system) progress
+
+- Backend:
+
+  - Added new fields to `User` model
+  - Created `Otp` model for OTP-based login
+  - Implemented auto-delete of expired OTPs in MongoDB
+  - Setup backend routes with strict input/output types:
+    - `POST /register`
+    - `POST /login`
+    - `GET /profile`
+    - `POST /logout`
+    - `POST /auth` (auth check via HTTP-only cookie)
+
+- Frontend:
+  - Built **register form** UI
+  - Implemented form handling and validation
+  - Successfully submitted email to backend `/register` route
+
 ### 🔜 Next
 
-- Start **Issue #2 (Auth system)**:
-  - Add backend routes for user registration & login
-  - Implement frontend forms for login/register
-  - Show protected profile page with user info
+- Complete frontend login form and connect to backend `/login`
+- Handle JWT HTTP-only cookies for session management
+- Build protected profile page showing user info
+- Add error/success handling for registration/login
