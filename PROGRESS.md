@@ -31,3 +31,22 @@ All daily logs of implemented features, videos, and next steps.
 ### Video:
 
 - [Day 1 Progress Demo](https://youtu.be/dummy123)
+
+## Day 2 (WIP)
+
+### ✅ Completed
+
+- Setup minimal frontend file & folder structure
+- Added `index.html` with TailwindCSS via CDN
+- Implemented basic header and navigation
+- Created centralized fetch utility
+- Connected frontend to backend with test `GET /users` route
+- Rendered users in UI
+- Fixed CORS issue by enabling FastAPI `CORSMiddleware`
+
+### 🔜 Next
+
+- Start **Issue #2 (Auth system)**:
+  - Add backend routes for user registration & login
+  - Implement frontend forms for login/register
+  - Show protected profile page with user info
