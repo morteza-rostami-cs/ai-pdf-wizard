@@ -49,7 +49,7 @@ async def logout(response: Response):
     "message": "register route",
   }
 
-@user_router.post(path="/profile", response_model=ProfileResponse)
+@user_router.get(path="/profile", response_model=ProfileResponse)
 async def profile():
   print("profile request: ")
   return {
