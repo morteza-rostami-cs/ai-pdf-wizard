@@ -40,4 +40,12 @@ async function request(path, options = {}) {
 
 export const api = {
   getUsers: () => request("/users"),
+
+  // /users/register
+  register: (data) =>
+    request("/users/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }),
 };
