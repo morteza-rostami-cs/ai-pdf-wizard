@@ -6,6 +6,8 @@ from beanie import init_beanie # type: ignore
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorClient
 import asyncio
 
+from fastapi.middleware.cors import CORSMiddleware
+
 # my imports ------------------------
 from src.config import settings
 from src.models import User, Task
@@ -67,6 +69,22 @@ app = FastAPI(
   version="0.1.0",
   # pass lifespan
   lifespan=lifespan
+)
+
+# allowed origins
+origins = [
+  "http://127.0.0.1:5500",
+  "http://localhost:5500",
+  "http://localhost:5500",
+]
+
+# middleware
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=origins,
+  allow_credentials=True, # cookie
+  allow_methods=["*"],
+  allow_headers=["*"],
 )
 
 # /index 
