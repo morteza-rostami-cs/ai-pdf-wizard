@@ -33,10 +33,16 @@ async def register(
 async def login(
   data: LoginInput,
 ):
-  print("Register request: ", data.model_dump())
+  email = data.email
+  otp_code = data.otp_code
+
+  if not email or not otp_code:
+    raise ValueError("missing input: email, otp_code")
+
+  print("login request: ", data.model_dump())
   return {
     "message": "login route",
-    "email": data.otp
+    "otp": otp_code
   }
 
 @user_router.post(path="/logout")

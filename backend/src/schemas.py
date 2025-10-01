@@ -20,7 +20,7 @@ class RegisterInput(BaseModel):
 # /login -> input
 class LoginInput(BaseModel):
   email: EmailStr
-  otp: str
+  otp_code: str
 
 # /profile -> response
 class ProfileResponse(BaseModel):
