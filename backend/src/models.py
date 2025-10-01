@@ -1,26 +1,52 @@
-from beanie import Document, PydanticObjectId
+from beanie import Document, PydanticObjectId, Link
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, Any
 from datetime import datetime, timezone, timedelta
+from enum import Enum
 
 # my imports 
 from src.dtos import Dictor
+from src.dtos import TaskTypes, TaskStatus
 
 #-----------------------
 # User model
 #-----------------------
 
+# plane types -> for freemium
+class PlanType(str, Enum):
+  FREE = "free"
+  STANDARD = 'standard'
+  BRONZE = 'bronze'
+  GOLD = "gold"
+
 class User(Document):
   email: EmailStr
   name: str
+  hashed_password: Optional[str] = None
+  is_active: bool = True # for account deactivation
+
+  # subscription info
+  plan: PlanType = PlanType.FREE
+  subscription_start: Optional[datetime] = None
+  subscription_end: Optional[datetime] = None
+
+  # usage stats -> for freemium limits
+  total_pdfs_upload: int = 0
+  total_pages_processes: int = 0 # pdf page processing
+  total_tokens_used: int = 0 # embedding/chat
+
+  # metadata
+  created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+  updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
   class Settings:
     name  = 'users'# name of collection
 
+  # methods 
+
 #-----------------------
 # Task model
 #-----------------------
-from src.dtos import TaskTypes, TaskStatus
 
 class Task(Document):
   task_type: TaskTypes
@@ -68,3 +94,37 @@ class Task(Document):
     
     self.updated_at = datetime.now(timezone.utc)
     await self.save()
+
+#-----------------------
+# Otp model
+#-----------------------
+
+# beanie orm
+class Otp(Document):
+  otp_code: str # required
+  # await otp.user.fetch()
+  user: Link[User] # reference to user doc
+
+  # expiration
+  expires_at: datetime = datetime.now(timezone.utc) + timedelta(minutes=5) # 5 min
+  is_used: bool = False
+
+  # metadata
+  created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+  class Settings:
+    name = "otps"
+    
+    # TTL index on expires_at field
+    indexes: Any = [
+      {
+        "fields": ["expires_at"],
+        "expireAfterSeconds": 0 # delete once expires_at is reached
+      }
+    ]
+
+  # methods
+
+  def is_valid(self) -> bool:
+    """ check otp is still valid (not expired , not used) """
+    return not self.is_used and self.expires_at > datetime.now(timezone.utc)

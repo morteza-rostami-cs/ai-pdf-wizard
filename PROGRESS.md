@@ -2,9 +2,11 @@
 
 All daily logs of implemented features, videos, and next steps.
 
+---
+
 ## Day 1 — Initial Setup & Backend Basics
 
-### Completed:
+### ✅ Completed
 
 - Scaffolded FastAPI project with initial folder structure and `main.py`.
 - Added `requirements.txt` and installed necessary packages.
@@ -18,15 +20,17 @@ All daily logs of implemented features, videos, and next steps.
 - Setup async worker loop with a sample test task.
 - Created `Task` model and handler to trigger tasks from routes.
 
-### Notes / Challenges:
+### 📝 Notes / Challenges
 
 - Learned about Pydantic v2 strict extra fields behavior.
 - Verified async worker can run tasks triggered from different endpoints.
 
-### Next:
+### 🔜 Next
 
 - Setup first real backend feature (PDF upload route + processing scaffold).
 - Connect frontend to display test data and worker task status.
+
+---
 
 ## Day 2 (WIP)
 
@@ -40,13 +44,36 @@ All daily logs of implemented features, videos, and next steps.
 - Rendered users in UI
 - Fixed CORS issue by enabling FastAPI `CORSMiddleware`
 
+### 🎥 Video
+
+- [Issue #1 playlist](https://www.youtube.com/playlist?list=PLcccwZD44KFTqjAzkfjA97K67fIOMJy2i)
+
+---
+
+### 🔑 Issue #2 — Authentication & User Management (In Progress)
+
+#### Backend
+
+- Added new fields to `User` model
+- Created `Otp` model for OTP-based login
+- Implemented auto-delete of expired OTPs in MongoDB
+- Setup backend routes with strict input/output types:
+  - `POST /register`
+  - `POST /login`
+  - `GET /profile`
+  - `POST /logout`
+  - `POST /auth` (auth check via HTTP-only cookie)
+
+#### Frontend
+
+- Built **register form** UI
+- Implemented form handling and validation
+- Successfully submitted email to backend `/register` route
+
+---
+
 ### 🔜 Next
 
-- Start **Issue #2 (Auth system)**:
-  - Add backend routes for user registration & login
-  - Implement frontend forms for login/register
-  - Show protected profile page with user info
-
-### Video:
-
-- [issue #1 video](https://www.youtube.com/playlist?list=PLcccwZD44KFTqjAzkfjA97K67fIOMJy2i)
+- Complete frontend login form and connect to backend `/login`
+- Handle JWT HTTP-only cookies for session management
+- Build protected profile page showing user info
