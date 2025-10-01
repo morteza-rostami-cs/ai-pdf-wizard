@@ -12,11 +12,13 @@ A FastAPI + LangChain app for PDFs: upload, summarize, and chat with your docume
 
 ## 🚀 Features (MVP / Planned)
 
-- [ ] **Initial Project Setup & Infrastructure**
+- [x] **Initial Project Setup & Infrastructure**
 
   - FastAPI backend, MongoDB connection, ChromaDB integration, async worker loop
   - `.env` config with Pydantic
   - Basic frontend (HTML + JS + Tailwind CDN) connected to backend test route
+
+- [issue #1 video](https://www.youtube.com/playlist?list=PLcccwZD44KFTqjAzkfjA97K67fIOMJy2i)
 
 - [ ] **Authentication & User Management**
 

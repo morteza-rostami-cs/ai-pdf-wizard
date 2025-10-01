@@ -28,10 +28,6 @@ All daily logs of implemented features, videos, and next steps.
 - Setup first real backend feature (PDF upload route + processing scaffold).
 - Connect frontend to display test data and worker task status.
 
-### Video:
-
-- [Day 1 Progress Demo](https://youtu.be/dummy123)
-
 ## Day 2 (WIP)
 
 ### ✅ Completed
@@ -50,3 +46,7 @@ All daily logs of implemented features, videos, and next steps.
   - Add backend routes for user registration & login
   - Implement frontend forms for login/register
   - Show protected profile page with user info
+
+### Video:
+
+- [issue #1 video](https://www.youtube.com/playlist?list=PLcccwZD44KFTqjAzkfjA97K67fIOMJy2i)
