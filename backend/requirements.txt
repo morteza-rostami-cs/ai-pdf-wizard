@@ -20,6 +20,7 @@ python-jose[cryptography]
 passlib[bcrypt] 
 python-multipart
 pydantic[email]
+# sending email
 email-validator
 aiosmtplib
 #sentence-transformers

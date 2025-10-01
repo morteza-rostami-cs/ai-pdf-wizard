@@ -2,12 +2,15 @@
 
 from fastapi import APIRouter, HTTPException, Depends, Response, Request, Body, Path, UploadFile, File, status, Query
 from typing import Any
+import random
+import asyncio
 
 # my imports
-from src.models import User
+from src.models import User, Otp
 from src.schemas import UserCreate
 from src.services import fire_task
-from src.dtos import TaskTypes
+from src.dtos import TaskTypes, Dictor
+from src.services import send_email
 
 # schemas
 from src.schemas import RegisterInput, LoginInput, ProfileResponse, AuthResponse
@@ -19,15 +22,61 @@ user_router = APIRouter(prefix='/users', tags=['users'])
 # User routes
 #==============
 
+# register methods
+#=================
+
+async def get_or_create_user(email: str) -> User:
+  """ get user by email and create if does not exists """
+  user = await User.find_one({"email": email}) # beanie
+
+  if not user:
+    # create a new user if does not exist
+    user = User(email=email)
+    await user.insert()
+
+  return user
+
+async def create_otp(payload: Dictor) -> Otp:
+  """ generate otp_code & create an Otp record """
+
+  # 6-digits code
+  otp_code = str(random.randint(10000, 999999))
+
+  otp_record = Otp(
+    otp_code=otp_code,
+    user=payload['user_id'],
+  ) 
+
+  await otp_record.insert()
+
+  return otp_record
+
+# /users/register
 @user_router.post(path="/register")
 async def register(
   data: RegisterInput,
 ):
-  print("Register request: ", data.model_dump())
-  return {
-    "message": "register route",
-    "email": data.email
-  }
+  # data
+  email = data.email
+
+  # create a user if does not exist
+  user = await get_or_create_user(email=email)
+
+  # generate otp code and store a record inside of db
+  otp_record = await create_otp(payload={"user_id": user.id})
+
+  # send email
+  print(f"sending email: {user.email} - {otp_record.otp_code}")
+
+  # send an email
+  # asyncio.create_task(send_email(
+  #   to_email=user.email,
+  #   subject="Your OTP code", 
+  #   body=f"hi, your otp code is : {otp_record.otp_code}"
+  # ))
+
+  return {"message": "register success", "otp_code": otp_record.otp_code}
+
 
 @user_router.post(path="/login")
 async def login(

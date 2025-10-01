@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # my imports ------------------------
 from src.config import settings
-from src.models import User, Task
+from src.models import User, Task, Otp
 from src.workers import task_worker_loop
 
 
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
   # register models
   await init_beanie(
     database=db, # type: ignore
-    document_models=[User, Task]
+    document_models=[User, Task, Otp]
   )
 
   # mongodb is connected

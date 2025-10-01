@@ -3,6 +3,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, Any
 from datetime import datetime, timezone, timedelta
 from enum import Enum
+from pymongo import IndexModel
 
 # my imports 
 from src.dtos import Dictor
@@ -21,7 +22,7 @@ class PlanType(str, Enum):
 
 class User(Document):
   email: EmailStr
-  name: str
+  name: str = Field(default="user") # some default value for the user 
   hashed_password: Optional[str] = None
   is_active: bool = True # for account deactivation
 
@@ -117,10 +118,7 @@ class Otp(Document):
     
     # TTL index on expires_at field
     indexes: Any = [
-      {
-        "fields": ["expires_at"],
-        "expireAfterSeconds": 0 # delete once expires_at is reached
-      }
+      IndexModel([('expires_at', 1)], expireAfterSeconds=0),
     ]
 
   # methods
