@@ -113,3 +113,42 @@ All daily logs of implemented features, videos, and next steps.
 - Start session management with JWT verification.
 
 ---
+
+## Day 4 (WIP)
+
+### ✅ Completed
+
+- **Backend**
+
+  - Added dependencies for route protection:
+    - Authenticated-only routes
+    - Guest-only routes
+  - Enabled access to `auth_user` inside protected routes
+  - Implemented `/logout` route to clear session cookie
+  - Implemented `/me` route to return current authenticated user
+
+- **Frontend**
+
+  - Full **auth flow** integrated with backend
+  - On page load, call `/me` to refresh auth state
+  - Store current user in global `window.Auth` object
+  - Added helpers:
+    - `showIfAuth(...ids)` → show elements only to authenticated users
+    - `showIfGuest(...ids)` → show elements only to guest users
+  - Implemented `authGuard()` to redirect guests from protected pages
+  - Implemented **logout** logic:
+    - Clear global state
+    - Call backend `/logout`
+    - Redirect to `/login.html`
+    - Added `attachLogoutButton()` helper to wire logout buttons
+
+- **UI/UX**
+  - Guest users see **Register/Login** buttons
+  - Authenticated users see **Logout** button
+  - Prevented UI flash by hiding content until auth state is resolved
+
+### 🔜 Next
+
+- Refine error/success handling for login/register
+- Add toast/notification system for feedback
+- Start building protected **profile page** with live user data
