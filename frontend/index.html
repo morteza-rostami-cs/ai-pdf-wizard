@@ -18,20 +18,7 @@
       content="Simple homepage built with Tailwind CSS CDN"
     />
 
-    <!-- refresh auth state -->
-    <script type="module">
-      import {
-        fetchAuthUser,
-        showIfAuth,
-        showIfGuest,
-      } from "./js/auth/auth.js";
-
-      // load auth user from backend, set promise on window
-      window.currentUserPromise = fetchAuthUser();
-
-      showIfAuth("logout-btn"); // auth
-      showIfGuest("register-btn", "login-btn"); // guest
-    </script>
+    <script type="module" src="./js/main.js"></script>
   </head>
   <body class="bg-gray-50 text-gray-800 antialiased">
     <!-- site header -->

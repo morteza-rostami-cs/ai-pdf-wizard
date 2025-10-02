@@ -64,4 +64,10 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       // body: JSON.stringify(data),
     }),
+
+  logout: () =>
+    request("/users/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    }),
 };

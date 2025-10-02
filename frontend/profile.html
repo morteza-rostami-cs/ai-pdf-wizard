@@ -19,8 +19,13 @@
       }
     </style>
 
+    <script type="module" src="./js/main.js"></script>
+
     <!-- only authenticate user can access this page -->
-    <script type="module" src="./js/auth/authGuard.js"></script>
+    <script type="module">
+      import { authGuard } from "./js/auth/authGuard.js";
+      authGuard();
+    </script>
   </head>
   <body class="bg-gray-100 text-gray-800">
     <!-- site header -->

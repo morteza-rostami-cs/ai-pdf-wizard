@@ -25,11 +25,11 @@ export async function fetchAuthUser() {
 // show elements only to auth user
 export function showIfAuth(...ids) {
   window.currentUserPromise.then((data) => {
-    console.log(data);
     // const user = data.user;
     if (data.authenticated) {
       ids.forEach((id) => {
         const el = document.getElementById(id);
+
         if (el) el.classList.remove("hidden");
       });
     }
@@ -46,4 +46,29 @@ export function showIfGuest(...ids) {
       });
     }
   });
+}
+
+export async function logout() {
+  try {
+    await api.logout();
+
+    // on logout success
+
+    // clear global state
+    window.Auth.user = null;
+
+    // redirect to login
+    window.location.href = "/frontend/login.html";
+  } catch (err) {
+    console.error("logout request failed: ", err);
+  }
+}
+
+// setup event listener on logout button
+export function attachLogoutButton(buttonId = "logout-btn") {
+  const btn = document.getElementById(buttonId);
+
+  if (btn) {
+    btn.addEventListener("click", logout);
+  }
 }

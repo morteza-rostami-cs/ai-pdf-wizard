@@ -107,7 +107,10 @@ class Otp(Document):
   user: Link[User] # reference to user doc
 
   # expiration
-  expires_at: datetime = datetime.now(timezone.utc) + timedelta(minutes=5) # 5 min
+  #expires_at: datetime = datetime.now(timezone.utc) + timedelta(minutes=5) # 5 min
+  expires_at: datetime = Field(
+    default_factory=lambda: datetime.now(timezone.utc) + timedelta(minutes=5)
+  )
   is_used: bool = False
 
   # metadata
