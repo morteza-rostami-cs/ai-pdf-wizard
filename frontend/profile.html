@@ -11,6 +11,16 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css"
       rel="stylesheet"
     />
+
+    <!-- hide profile page: authenticate -->
+    <style>
+      body {
+        visibility: hidden;
+      }
+    </style>
+
+    <!-- only authenticate user can access this page -->
+    <script type="module" src="./js/auth/authGuard.js"></script>
   </head>
   <body class="bg-gray-100 text-gray-800">
     <!-- site header -->

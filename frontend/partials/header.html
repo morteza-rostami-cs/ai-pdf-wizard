@@ -1,3 +1,12 @@
+<!--
+<script type="module">
+  import { fetchAuthUser, showIfAuth, showIfGuest } from "./js/auth/auth.js";
+  console.log("header.html");
+  showIfAuth("register-btn", "login-btn");
+  showIfGuest("logout-btn");
+</script>
+-->
+
 <header class="bg-white shadow-sm">
   <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
     <a href="./index.html" class="flex items-center gap-3">
@@ -16,11 +25,29 @@
     </a>
 
     <nav class="#hidden md:flex items-center gap-6 text-sm">
-      <a href="./register.html" class="hover:text-indigo-600">Register</a>
+      <a
+        href="./register.html"
+        class="hover:text-indigo-600 hidden"
+        id="register-btn"
+        >Register</a
+      >
 
-      <a href="./login.html" class="hover:text-indigo-600"> Login </a>
+      <a
+        href="./login.html"
+        class="hover:text-indigo-600 hidden"
+        id="login-btn"
+      >
+        Login
+      </a>
 
       <a href="./profile.html" class="hover:text-indigo-600"> Profile </a>
+      <a
+        href="./profile.html"
+        class="hover:text-red-600 text-red-500 hidden"
+        id="logout-btn"
+      >
+        Logout
+      </a>
     </nav>
 
     <!-- 

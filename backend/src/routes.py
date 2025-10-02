@@ -96,11 +96,13 @@ async def check_user_exists(email: str) -> User:
 
 async def verify_otp(user: User, otp_code: str) -> Otp:
   """ get otp record & raise exception is does not exists """
-  print(user.id, otp_code)
+
   otp : Otp | None = await Otp.find_one(
     dict(user=DBRef(collection='users', id=user.id), otp_code=otp_code),
   )
 
+  print(user.id, otp_code, "\n")
+  print(otp)
   # check if current user has such otp
   if not otp:
     raise HTTPException(status_code=400, detail="invalid otp")
@@ -115,6 +117,7 @@ def check_otp_expiration(expires_at: datetime) -> None:
     expires_at = expires_at.replace(tzinfo=timezone.utc)
 
   # check is otp is expired
+  print(expires_at, datetime.now(timezone.utc))
   if expires_at < datetime.now(timezone.utc):
     raise HTTPException(status_code=400, detail="OTP expired")
 

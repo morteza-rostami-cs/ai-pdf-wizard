@@ -39,6 +39,9 @@ form.addEventListener("submit", async (e) => {
     // success message
     messageDiv.textContent = `login success, ${data?.user.id}`;
     messageDiv.className = "mt-4 text-center text-green-600";
+
+    // redirect to /profile page
+    window.location.href = "/frontend/profile.html";
   } catch (error) {
     // show error message
     messageDiv.textContent = error.message;

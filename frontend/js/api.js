@@ -56,4 +56,12 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     }),
+
+  // /users/me
+  get_me: () =>
+    request("/users/me", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      // body: JSON.stringify(data),
+    }),
 };

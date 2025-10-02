@@ -11,6 +11,15 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css"
       rel="stylesheet"
     />
+
+    <!-- only guest users -->
+    <style>
+      body {
+        visibility: hidden;
+      }
+    </style>
+
+    <script type="module" src="./js/auth/guestGuard.js"></script>
   </head>
   <body class="bg-gray-100 text-gray-800">
     <!-- site header -->
