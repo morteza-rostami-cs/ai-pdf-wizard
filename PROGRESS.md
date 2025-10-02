@@ -77,3 +77,39 @@ All daily logs of implemented features, videos, and next steps.
 - Complete frontend login form and connect to backend `/login`
 - Handle JWT HTTP-only cookies for session management
 - Build protected profile page showing user info
+
+---
+
+## Day 3 — Authentication & User Management (Issue #2)
+
+### ✅ Completed
+
+**Backend:**
+
+- Added `/register` route to accept email, generate OTP, and store in MongoDB.
+- Integrated Gmail SMTP to send OTPs to user inbox.
+- Implemented `/login` route to accept email + OTP.
+- `/login` route validates OTP and sets JWT in an HTTP-only cookie.
+- Fixed Beanie TTL index issue for OTP auto-expiry.
+- Fixed DBRef query issue for OTP lookup.
+- Fixed cookie persistence issue in development (localhost vs 127.0.0.1).
+
+**Frontend:**
+
+- Built registration form and OTP request UI.
+- Implemented login form to submit email + OTP.
+- Verified successful login sets JWT cookie in browser.
+
+### 🔧 Notes / Challenges
+
+- Learned about MongoDB TTL index setup with Beanie.
+- Debugged DBRef vs ObjectId querying in Beanie.
+- Handled cross-origin cookie persistence issues in development.
+
+### 🔜 Next
+
+- Complete login form error/success handling on frontend.
+- Build protected profile page showing user information.
+- Start session management with JWT verification.
+
+---
