@@ -4,13 +4,18 @@ from fastapi import APIRouter, HTTPException, Depends, Response, Request, Body, 
 from typing import Any
 import random
 import asyncio
+# from bson import ObjectId
+from datetime import datetime, timezone
+from beanie import PydanticObjectId
+from bson import DBRef
 
 # my imports
 from src.models import User, Otp
 from src.schemas import UserCreate
 from src.services import fire_task
 from src.dtos import TaskTypes, Dictor
-from src.services import send_email
+from src.services import send_email, generate_jwt, verify_jwt
+from src.config import settings
 
 # schemas
 from src.schemas import RegisterInput, LoginInput, ProfileResponse, AuthResponse
@@ -44,7 +49,7 @@ async def create_otp(payload: Dictor) -> Otp:
 
   otp_record = Otp(
     otp_code=otp_code,
-    user=payload['user_id'],
+    user=payload['user'],
   ) 
 
   await otp_record.insert()
@@ -63,7 +68,7 @@ async def register(
   user = await get_or_create_user(email=email)
 
   # generate otp code and store a record inside of db
-  otp_record = await create_otp(payload={"user_id": user.id})
+  otp_record = await create_otp(payload={"user": user})
 
   # send email
   print(f"sending email: {user.email} - {otp_record.otp_code}")
@@ -77,22 +82,89 @@ async def register(
 
   return {"message": "register success", "otp_code": otp_record.otp_code}
 
+# ============= methods
+
+async def check_user_exists(email: str) -> User:
+  """ get user by email, return if exists """
+
+  user = await User.find_one({"email": email})
+
+  if not user:
+    raise HTTPException(status_code=404, detail="User not found")
+
+  return user
+
+
+
+async def verify_otp(user: User, otp_code: str) -> Otp:
+  """ get otp record & raise exception is does not exists """
+  print(user.id, otp_code)
+  otp : Otp | None = await Otp.find_one(
+    dict(user=DBRef(collection='users', id=user.id), otp_code=otp_code),
+  )
+
+  # check if current user has such otp
+  if not otp:
+    raise HTTPException(status_code=400, detail="invalid otp")
+
+  return otp
+
+def check_otp_expiration(expires_at: datetime) -> None:
+  """ check otp expiration date, also: add timezone to db field """
+
+  # force db field to include timezone
+  if expires_at.tzinfo is None:
+    expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+  # check is otp is expired
+  if expires_at < datetime.now(timezone.utc):
+    raise HTTPException(status_code=400, detail="OTP expired")
+
+def generate_jwt_set_cookie(payload: Dictor, response: Response):
+  """ generate jwt and set it in http only cookie """
+
+  access_token = generate_jwt(payload=payload)
+
+  # set access-token in http only cookie
+  # localhost:8000
+  # localhost:5000
+  response.set_cookie(
+    key="access_token", # name of cookie
+    value=access_token,
+    httponly=True,
+    samesite='lax',
+    max_age=settings.JWT_EXPIRE_MINS,
+    # secure=
+    # domain=
+  )
 
 @user_router.post(path="/login")
 async def login(
-  data: LoginInput,
+  response: Response,
+  data: LoginInput = Body(...),
 ):
+  # data
   email = data.email
   otp_code = data.otp_code
 
-  if not email or not otp_code:
-    raise ValueError("missing input: email, otp_code")
+  user = await check_user_exists(email=email)
 
-  print("login request: ", data.model_dump())
-  return {
-    "message": "login route",
-    "otp": otp_code
-  }
+  # verify otp
+  otp = await verify_otp(user=user, otp_code=otp_code)
+
+  check_otp_expiration(expires_at=otp.expires_at)
+
+  # delete otp
+  await otp.delete()
+
+  # jwt payload
+  payload = dict(user_id= str(user.id), email=user.email)
+
+  generate_jwt_set_cookie(payload=payload, response=response)
+
+  return dict(message="login success", user=user.model_dump(mode="json"))
+
+  
 
 @user_router.post(path="/logout")
 async def logout(response: Response):

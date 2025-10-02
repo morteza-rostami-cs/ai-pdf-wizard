@@ -31,7 +31,7 @@ form.addEventListener("submit", async (e) => {
     const data = await api.register({ email });
 
     // success message
-    messageDiv.textContent = `register success, ${data.email}`;
+    messageDiv.textContent = `register success, ${data.otp_code}`;
     messageDiv.className = "mt-4 text-center text-green-600";
   } catch (error) {
     // show error message

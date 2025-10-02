@@ -37,7 +37,7 @@ form.addEventListener("submit", async (e) => {
     const data = await api.login({ email, otp_code: otp_code });
 
     // success message
-    messageDiv.textContent = `login success, ${data?.otp}`;
+    messageDiv.textContent = `login success, ${data?.user.id}`;
     messageDiv.className = "mt-4 text-center text-green-600";
   } catch (error) {
     // show error message

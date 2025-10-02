@@ -1,5 +1,8 @@
 from email.message import EmailMessage
 import aiosmtplib
+from datetime import datetime, timezone, timedelta
+from jose import jwt, JWTError
+from fastapi import HTTPException, status
 
 # my imports 
 from src.dtos import TaskTypes, Dictor
@@ -60,3 +63,45 @@ async def send_email(
 
   print(f"email send to: {to_email}")
 
+
+# generate jwt
+def generate_jwt(
+    payload: Dictor,
+    expires_minutes: int = settings.JWT_EXPIRE_MINS,
+):
+  """ create jwt token with expiration date """
+
+  # set expiration date
+  expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+
+  # add expiration date to payload
+  payload.update({"exp": expire})
+
+  # generate jwt token
+  token = jwt.encode(
+    claims=payload,
+    key=settings.JWT_SECRET_KEY , # jwt secret
+    algorithm=settings.JWT_ALGORITHM,
+  )
+
+  return token
+
+# verify jwt
+
+def verify_jwt(token: str) -> Dictor:
+  """
+  verify jwt and return decoded token
+  raise 401 -> if invalid or expired
+  """
+
+  try:
+    decoded = jwt.decode(
+      token=token, 
+      key=settings.JWT_SECRET_KEY,
+      algorithms=[settings.JWT_ALGORITHM],
+    )
+
+    return decoded
+
+  except JWTError:
+    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired token")

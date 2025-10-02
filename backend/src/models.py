@@ -126,3 +126,5 @@ class Otp(Document):
   def is_valid(self) -> bool:
     """ check otp is still valid (not expired , not used) """
     return not self.is_used and self.expires_at > datetime.now(timezone.utc)
+  
+  
