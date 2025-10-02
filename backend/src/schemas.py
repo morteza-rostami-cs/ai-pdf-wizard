@@ -27,8 +27,7 @@ class ProfileResponse(BaseModel):
   email: EmailStr
   plan: str
 
-# /auth -> response
-class AuthResponse(BaseModel):
+# /me -> response
+class MeResponse(BaseModel):
   authenticated: bool
   user: Optional[User] = None
-

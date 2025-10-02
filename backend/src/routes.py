@@ -11,14 +11,14 @@ from bson import DBRef
 
 # my imports
 from src.models import User, Otp
-from src.schemas import UserCreate
 from src.services import fire_task
 from src.dtos import TaskTypes, Dictor
-from src.services import send_email, generate_jwt, verify_jwt
+from src.services import send_email, generate_jwt, verify_jwt, verify_token
 from src.config import settings
+from src.dependencies import auth_guard, guest_guard
 
 # schemas
-from src.schemas import RegisterInput, LoginInput, ProfileResponse, AuthResponse
+from src.schemas import RegisterInput, LoginInput, ProfileResponse, UserCreate, MeResponse
 
 # routers 
 user_router = APIRouter(prefix='/users', tags=['users'])
@@ -57,7 +57,7 @@ async def create_otp(payload: Dictor) -> Otp:
   return otp_record
 
 # /users/register
-@user_router.post(path="/register")
+@user_router.post(path="/register", dependencies=[Depends(guest_guard)])
 async def register(
   data: RegisterInput,
 ):
@@ -93,8 +93,6 @@ async def check_user_exists(email: str) -> User:
     raise HTTPException(status_code=404, detail="User not found")
 
   return user
-
-
 
 async def verify_otp(user: User, otp_code: str) -> Otp:
   """ get otp record & raise exception is does not exists """
@@ -138,7 +136,7 @@ def generate_jwt_set_cookie(payload: Dictor, response: Response):
     # domain=
   )
 
-@user_router.post(path="/login")
+@user_router.post(path="/login", dependencies=[Depends(guest_guard)])
 async def login(
   response: Response,
   data: LoginInput = Body(...),
@@ -170,26 +168,39 @@ async def login(
 async def logout(response: Response):
   
   # remove jwt from cookie
-  print("logout request")
+  response.delete_cookie(key='access_token')
 
-  return {
-    "message": "register route",
-  }
+  return dict(message="logged out success")
+  
 
 @user_router.get(path="/profile", response_model=ProfileResponse)
-async def profile():
-  print("profile request: ")
-  return {
-    "email": "example@gmail.com",
-    "plan": "free",
-  }
+async def profile(
+  auth_user: User = Depends(dependency=auth_guard)
+):
+  print("profile request: ", auth_user.email)
+  return dict(email=auth_user.email, plan="free")
 
-@user_router.post(path="/auth", response_model=AuthResponse)
-async def auth():
-  print("auth check request: ",)
-  return {
-    "authenticated": True
-  }
+@user_router.post(path="/me", response_model=MeResponse)
+async def me(request: Request):
+  
+  # check if token exists and valid
+  payload: Dictor | None = verify_token(request=request)
+
+  if not payload: 
+    return MeResponse(authenticated=False)
+  
+  user_id = payload.get("user_id")
+
+  user = await User.get(document_id=PydanticObjectId(oid=user_id))
+
+  if not user:
+    return MeResponse(authenticated=False)
+
+  # valid authenticated user
+  return MeResponse(
+    authenticated=True,
+    user=user
+  )
 
 @user_router.get(path='')
 async def get_users() -> Any:

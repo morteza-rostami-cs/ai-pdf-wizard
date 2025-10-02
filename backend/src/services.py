@@ -2,7 +2,7 @@ from email.message import EmailMessage
 import aiosmtplib
 from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 
 # my imports 
 from src.dtos import TaskTypes, Dictor
@@ -105,3 +105,22 @@ def verify_jwt(token: str) -> Dictor:
 
   except JWTError:
     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid or expired token")
+  
+
+# can verify token
+def verify_token(request: Request) -> Dictor | None:
+  """ takes request, validate token """
+
+  token = request.cookies.get("access_token")
+
+  if not token:
+    print("no token")
+    return None
+  
+  payload = verify_jwt(token=token)
+
+  if not payload:
+    print('no payload')
+    return None
+  
+  return payload
