@@ -152,3 +152,69 @@ All daily logs of implemented features, videos, and next steps.
 - Refine error/success handling for login/register
 - Add toast/notification system for feedback
 - Start building protected **profile page** with live user data
+
+---
+
+## Day 5 (WIP)
+
+### ✅ Completed
+
+- **Frontend: Profile Page**
+
+  - Implemented **profile page** to display authenticated user data:
+
+    - Email, plan type, and other user details.
+
+  - Fetched data from `/me` on page load and injected into DOM.
+  - Ensured that UI updates **only after auth state is confirmed**, preventing flash of unauthorized content.
+
+- **Live PDF Upload Progress**
+
+  - Implemented **SSE-based live progress bar** for PDF uploads:
+
+    - Created `/pdfs/progress/{upload_id}` endpoint in FastAPI.
+    - Backend streams **upload progress**, `percent`, and `status` in real-time.
+    - Frontend uses `EventSource` to subscribe to updates and dynamically update UI.
+
+  - Added `/upload-pdf` route to simulate upload chunks in background task for testing.
+  - Used **MongoDB GridFS** to store files (preparing for actual PDF storage).
+
+- **Challenges & Solutions**
+
+  - **Cookie handling**:
+
+    - Needed cookies for authenticated SSE.
+    - Solved by serving frontend from **FastAPI** to share origin with backend.
+
+  - **JSON serialization**:
+
+    - Enum fields (`UploadStatus`) caused `json.dumps()` errors.
+    - Solved by converting enum to string before streaming.
+
+  - **Connection lifecycle**:
+
+    - SSE closes when upload is done; handled cleanly on frontend to avoid errors.
+
+  - **Shared state**:
+
+    - Created or accessed `Upload` records in DB before streaming to avoid race conditions.
+
+  - **Frontend-backend integration**:
+
+    - Configured `EventSource` with `credentials: "include"` for cookies across SSE requests.
+    - Ensured backend CORS and SameSite settings allowed cookies.
+
+- **UI/UX**
+
+  - Live upload progress bar updates dynamically from backend events.
+  - Completed uploads automatically **close SSE connection** on frontend.
+  - Users see **real-time progress** feedback instead of static loading indicators.
+
+### 🔜 Next
+
+- Implement actual **PDF chunked upload** and save in GridFS.
+- Schedule **background text extraction** tasks after upload.
+- Refine error handling for failed uploads.
+- Connect progress bar to real file uploads rather than simulated ones.
+
+---
