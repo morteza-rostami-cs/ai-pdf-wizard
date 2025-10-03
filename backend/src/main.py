@@ -10,12 +10,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # my imports ------------------------
 from src.config import settings
-from src.models import User, Task, Otp
+from src.models import User, Task, Otp, Upload
 from src.workers import task_worker_loop
 
 
 # my routes --------------------------
-from src.routes import user_router
+from src.routes import user_router, pdf_router
 
 # lifespan -> runs on server start 
 @asynccontextmanager
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
   # register models
   await init_beanie(
     database=db, # type: ignore
-    document_models=[User, Task, Otp]
+    document_models=[User, Task, Otp, Upload]
   )
 
   # mongodb is connected
@@ -71,6 +71,8 @@ app = FastAPI(
   lifespan=lifespan
 )
 
+
+
 # allowed origins
 origins = [
   "http://127.0.0.1:5500",
@@ -88,20 +90,25 @@ app.add_middleware(
 )
 
 # /index 
-@app.get('/')
-async def index() -> Any:
+# @app.get('/')
+# async def index() -> Any:
 
-  return {
-    "status": "ok",
-    "message": "from /index route",
-    "db_name": settings.MONGO_DB_NAME,
-  }
+#   return {
+#     "status": "ok",
+#     "message": "from /index route",
+#     "db_name": settings.MONGO_DB_NAME,
+#   }
 
 # --------------------------
 # routes
 # --------------------------
 
-app.include_router(router=user_router)
+app.include_router(router=user_router, prefix='/api')
+app.include_router(router=pdf_router, prefix='/api')
+
+from fastapi.staticfiles import StaticFiles
+# has to come after other /api routes
+app.mount("/", StaticFiles(directory='frontend', html=True), name='frontend')
 
 # run fastapi server
 if __name__ == "__main__":

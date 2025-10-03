@@ -8,9 +8,11 @@ import asyncio
 from datetime import datetime, timezone
 from beanie import PydanticObjectId
 from bson import DBRef
+import json
+import uuid
 
 # my imports
-from src.models import User, Otp
+from src.models import User, Otp, Upload
 from src.services import fire_task
 from src.dtos import TaskTypes, Dictor
 from src.services import send_email, generate_jwt, verify_jwt, verify_token
@@ -22,6 +24,7 @@ from src.schemas import RegisterInput, LoginInput, ProfileResponse, UserCreate, 
 
 # routers 
 user_router = APIRouter(prefix='/users', tags=['users'])
+pdf_router = APIRouter(prefix='/pdfs', tags=['pdfs'])
 
 #==============
 # User routes
@@ -134,7 +137,9 @@ def generate_jwt_set_cookie(payload: Dictor, response: Response):
     value=access_token,
     httponly=True,
     samesite='lax',
+    #samesite='none', # secure must be True -> only works over https
     max_age=settings.JWT_EXPIRE_MINS,
+    secure=False,
     # secure=
     # domain=
   )
@@ -238,3 +243,142 @@ async def create_user(
     "message": 'user created',
     "user": user
   }
+
+#==============
+# PDF upload routes
+#==============
+
+from fastapi import BackgroundTasks
+from fastapi.responses import StreamingResponse
+from beanie import Link
+from bson import ObjectId, DBRef
+from src.dtos import UploadStatus
+
+# open a SSE connection -> server sent event
+@pdf_router.get(path='/progress/{upload_id}')
+async def progress_stream(
+  request: Request,
+  upload_id: str = Path(...),
+  auth_user: User = Depends(dependency=auth_guard)
+): 
+  """ SSE endpoint that streams upload progress  for a given upload_id session """
+
+  # generator 
+  async def event_generator():
+
+    # keep track of last percent upload
+    last_percent = None
+
+    # create a Upload record
+    upload = await Upload.find_one(Upload.upload_id == upload_id)
+
+    # we start new upload process
+    if not upload:
+      upload = Upload(
+        upload_id=upload_id,
+        user=auth_user, # type: ignore
+        percent=0,
+        status=UploadStatus.UPLOADING, # start an upload
+      )
+      # save in db
+      await upload.insert()
+
+    # our streaming loop
+    while True:
+      # break if sse disconnected
+      if await request.is_disconnected():
+        break
+
+      # find upload record by id -> 
+      upload: Any = await Upload.find_one(Upload.upload_id == upload_id)
+
+      if upload.percent != last_percent or upload.status in {UploadStatus.DONE, UploadStatus.FAILED}:
+        # this is the payload we send to client 
+        payload = dict(
+          upload_id= upload.upload_id,
+          percent= upload.percent, # we show this on our UI
+          # convert enum to string -> json.dumps can't serialize Enum
+          status= upload.status.value,
+          file_id= upload.file_id,
+          error= upload.error,
+        )
+
+        # we stream each chunk to the frontend
+        yield f"data: {json.dumps(payload)}\n\n"
+
+        # set the last percent
+        last_percent = upload.percent
+
+      # stop streaming -> done, failed
+      if upload.status in {UploadStatus.DONE, UploadStatus.FAILED}:
+        print("stop streaming --")
+        break
+
+      await asyncio.sleep(1) # 1 seconds
+
+
+  return StreamingResponse(event_generator(), media_type='text/event-stream')
+  
+# upload pdf route
+@pdf_router.post("/upload-pdf")
+async def upload_pdf(
+  background_tasks: BackgroundTasks,
+  data: Any = Body(...),
+  auth_user: User = Depends(dependency=auth_guard),
+):
+  """
+  upload pdf chunk by chunk and increment upload process
+  """
+  upload_id = data['upload_id']
+
+  # create or set a upload doc
+  upload = await Upload.find_one(
+    Upload.upload_id == upload_id,
+  )
+
+  if not upload:
+    # create an upload
+    upload = Upload(
+      upload_id=upload_id,
+      percent=0,
+      status=UploadStatus.UPLOADING,
+      user=auth_user,  # type: ignore
+    )
+    await upload.insert()
+  else:
+    # reset upload record
+    upload.percent = 0
+    upload.status = UploadStatus.UPLOADING
+    upload.file_id = None
+
+    await upload.save()
+    
+  # simulate background chunk process
+  async def simulate_chunks(upload_id: str):
+    for i in range(1, 11): # 10 steps
+      # fake a delay
+      await asyncio.sleep(0.5)
+
+      # update upload with new percentage and date
+      doc: Any = await Upload.find_one(Upload.upload_id == upload_id,)
+      doc.percent = i * 10
+      doc.updated_at = datetime.now(timezone.utc)
+
+      await doc.save()
+
+    # out of loop -> mark as done
+    upload_doc: Any = await Upload.find_one(Upload.upload_id == upload_id)
+    upload_doc.status = UploadStatus.DONE
+    upload_doc.file_id = str(uuid.uuid4())
+
+    await upload_doc.save()
+
+  background_tasks.add_task(simulate_chunks, upload_id)
+
+  return dict(
+    message="upload started",
+    upload_id=upload_id
+  )
+
+
+

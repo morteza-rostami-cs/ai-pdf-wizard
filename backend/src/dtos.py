@@ -13,3 +13,8 @@ class TaskStatus(Enum):
   FAILED = 'failed'
 
 Dictor: TypeAlias = dict[str, Any]
+
+class UploadStatus(Enum):
+  UPLOADING = 'uploading'
+  DONE = 'done'
+  FAILED = 'failed'

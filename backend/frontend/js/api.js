@@ -1,4 +1,4 @@
-const BASE_API = "http://localhost:8000";
+const BASE_API = "http://localhost:8000/api";
 
 // generate request instance
 async function request(path, options = {}) {
