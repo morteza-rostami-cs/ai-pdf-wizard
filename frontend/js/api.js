@@ -70,4 +70,10 @@ export const api = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
     }),
+
+  profile: () =>
+    request("/users/profile", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    }),
 };

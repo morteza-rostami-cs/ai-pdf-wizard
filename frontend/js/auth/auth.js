@@ -72,3 +72,11 @@ export function attachLogoutButton(buttonId = "logout-btn") {
     btn.addEventListener("click", logout);
   }
 }
+
+export function getAuthData(func = (data) => {}) {
+  document.addEventListener("DOMContentLoaded", () => {
+    window.currentUserPromise.then((data) => {
+      func(data.user);
+    });
+  });
+}

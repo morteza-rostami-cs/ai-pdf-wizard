@@ -27,7 +27,7 @@
       authGuard();
     </script>
   </head>
-  <body class="bg-gray-100 text-gray-800">
+  <body class="bg-gray-100 min-h-screen">
     <!-- site header -->
     <div id="header"></div>
     <script type="module">
@@ -36,46 +36,35 @@
       loadHeader();
     </script>
 
-    <h1 class="text-2xl font-bold mb-4">Users</h1>
-    <ul id="users-list" class="space-y-2"></ul>
-    <div id="error" class="text-red-500 mt-4"></div>
+    <div class="bg-white shadow-lg rounded-xl p-6 w-96 mx-auto mt-10">
+      <h1 class="text-2xl font-bold mb-4 text-center">Profile</h1>
+
+      <div class="space-y-3">
+        <p>
+          <span class="font-semibold">Email:</span>
+          <span id="email">Loading...</span>
+        </p>
+        <p>
+          <span class="font-semibold">Plan Type:</span>
+          <span id="planType">Loading...</span>
+        </p>
+      </div>
+    </div>
 
     <!-- load some users data for test -->
+
     <script type="module">
-      import { api } from "./js/api.js";
-      // load users
+      import { getAuthData } from "./js/auth/auth.js";
 
-      const usersListEl = document.getElementById("users-list");
-      const errorEl = document.getElementById("error");
+      // get fresh user data
+      getAuthData((user) => {
+        console.log(user);
+        const email = document.getElementById("email");
+        const plan = document.getElementById("planType");
 
-      // render a single user
-      function renderUser(user) {
-        const li = document.createElement("li");
-        li.className = "p-2 border rounded bg-gray-50";
-        li.textContent = `${user.name} (${user.email})`;
-        return li;
-      }
-
-      // render a list of users
-      function renderUsers(users) {
-        usersListEl.innerHTML = ""; // clear previous data
-        // insert
-        users.forEach((user) => usersListEl.appendChild(renderUser(user)));
-      }
-
-      // fetch users from api
-      async function loadUsers() {
-        try {
-          const users = await api.getUsers();
-          renderUsers(users);
-        } catch (error) {
-          console.log(error);
-          errorEl.textContent = error.message || "Failed to load users.";
-        }
-      }
-
-      // initialize
-      document.addEventListener("DOMContentLoaded", loadUsers);
+        email.textContent = user.email;
+        plan.textContent = user.plan;
+      });
     </script>
 
     <!-- Flowbite JS -->

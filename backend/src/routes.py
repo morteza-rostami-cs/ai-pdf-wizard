@@ -181,7 +181,7 @@ async def profile(
   auth_user: User = Depends(dependency=auth_guard)
 ):
   print("profile request: ", auth_user.email)
-  return dict(email=auth_user.email, plan="free")
+  return dict(email=auth_user.email, plan=auth_user.plan)
 
 @user_router.post(path="/me", response_model=MeResponse)
 async def me(request: Request):
