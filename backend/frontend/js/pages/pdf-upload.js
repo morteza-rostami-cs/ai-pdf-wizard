@@ -1,10 +1,17 @@
 import { api } from "../api.js";
+import { openSseProgress, updateProgressBar } from "../upload-progress.js";
+
 // pdf form
 const form = document.getElementById("pdf-form");
 
 form.addEventListener("submit", async (event) => {
   console.log("start pdf upload");
   event.preventDefault();
+
+  const upload_id = crypto.randomUUID();
+
+  // open a sse connection -> to get upload progress
+  openSseProgress(upload_id, updateProgressBar);
 
   // file input
   const fileEl = document.getElementById("pdf-input");
@@ -14,8 +21,8 @@ form.addEventListener("submit", async (event) => {
 
   // file
   const file = fileEl.files[0];
-  //const upload_id = crypto.randomUUID();
-  const upload_id = "123";
+
+  //const upload_id = "123";
 
   if (!file) {
     window.alert("please select a file first!");

@@ -58,8 +58,12 @@
         </button>
       </form>
 
-      <!-- progress bar -->
-      <div id="progress-bar" class="p-1 mt-2 bg-blue-300"></div>
+      <div class="w-full bg-gray-200 rounded-md mt-4 h-4 overflow-hidden">
+        <!-- progress bar -->
+        <div id="progress-bar" class="bg-blue-500 h-4 w-0 transition-all"></div>
+      </div>
+
+      <p id="upload-status" class="text-sm mt-2 text-gray-600">waiting...</p>
     </div>
 
     <!-- Flowbite JS -->

@@ -411,6 +411,9 @@ async def upload_pdf(
 
         await upload_doc.save() # type: ignore
 
+        # some delay
+        await asyncio.sleep(1)
+
       # close bucket
       await grid_in.close()
 
@@ -428,7 +431,7 @@ async def upload_pdf(
         upload_id=upload_id,
         user=user # type: ignore
       )
-      print(pdf_doc)
+      
       await pdf_doc.insert()
 
     except Exception as e:
