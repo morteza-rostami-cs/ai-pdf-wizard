@@ -222,3 +222,24 @@ All daily logs of implemented features, videos, and next steps.
 ### 🎥 Video
 
 - [Issue #2 playlist](https://www.youtube.com/playlist?list=PLcccwZD44KFT7zot2XkPLcsBERHcIELzO)
+
+---
+
+## 🗓️ **Day 6 – PDF Upload System (Issue #3)**
+
+**Main focus:** Building a full PDF upload flow with real-time progress feedback using SSE (Server-Sent Events).
+
+### ✅ Completed Tasks
+
+- Integrated **SSE connection** to stream real-time upload progress from the backend.
+- Each upload session now uses a shared `upload_id` between `/upload-pdf` and `/progress` routes for synchronization.
+- Implemented **frontend progress bar** that updates dynamically based on SSE events.
+- Displayed **upload status messages** (in progress / completed / failed) in the UI.
+- Continued improving integration between FastAPI background task and the frontend flow.
+
+### 🎯 Next Steps
+
+- Add error handling and cancel support for uploads.
+- Trigger and manage a background **PDF processing job** after successful upload (next issue).
+
+---
