@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 # my imports ------------------------
 from src.config import settings
-from src.models import User, Task, Otp, Upload
+from src.models import User, Task, Otp, Upload, PDF
 from src.workers import task_worker_loop
 
 
@@ -30,15 +30,19 @@ async def lifespan(app: FastAPI):
   db: AsyncIOMotorDatabase[Any] = client[settings.MONGO_DB_NAME]
 
   # save db instance globally 
-  from src import config
+  #from src import config
 
-  config.mongo_client = client
-  config.mongo_db = db
+  #config.mongo_client = client
+  #config.mongo_db = db
+
+  # store client and db in app.state
+  app.state.mongo_client = client
+  app.state.mongo_db = db
 
   # register models
   await init_beanie(
     database=db, # type: ignore
-    document_models=[User, Task, Otp, Upload]
+    document_models=[User, Task, Otp, Upload, PDF]
   )
 
   # mongodb is connected

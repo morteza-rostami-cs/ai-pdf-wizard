@@ -9,7 +9,7 @@ async function request(path, options = {}) {
       // cookies for jwt
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
+        // "Content-Type": "application/json",
         ...(options.headers || {}),
       },
     });
@@ -75,5 +75,12 @@ export const api = {
     request("/users/profile", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
+    }),
+
+  pdfUpload: (data) =>
+    request("/pdfs/upload-pdf", {
+      method: "POST",
+      body: data, // do not stringify formData
+      // headers: { "Content-Type": "multipart/form-data" }, // let browser to set this
     }),
 };

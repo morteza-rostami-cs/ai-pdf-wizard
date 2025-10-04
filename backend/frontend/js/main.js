@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.currentUserPromise = fetchAuthUser();
 });
 
+// SSE -> localhost:8000 , localhost:5500
 const source = new EventSource("http://localhost:8000/api/pdfs/progress/123");
 
 source.onmessage = (event) => {

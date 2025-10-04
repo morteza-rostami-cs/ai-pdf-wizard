@@ -4,6 +4,7 @@ from typing import Optional, Any
 from datetime import datetime, timezone, timedelta
 from enum import Enum
 from pymongo import IndexModel
+from bson import ObjectId
 
 # my imports 
 from src.dtos import Dictor
@@ -155,3 +156,27 @@ class Upload(Document):
     # indexes = [
     #   IndexModel([('updated_at', 1)], expiresAfterSeconds=3600)
     # ]
+
+# define a PDF model -> holds PDF metadata -> extracted text and html
+class PDF(Document):
+  title: Optional[str] = None
+  filename: str # file.filename
+
+  # reference to file in GridFs
+  gridfs_id: str
+
+  upload_id: str # SSE event
+  num_pages: Optional[int] = None
+  # metadata
+  user: Link[User] # required
+
+  # extracted text
+  text_content: Optional[str] = None
+  # extracted html
+  html_content: Optional[str] = None
+
+  created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+  updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+  class Settings:
+    name = "pdfs"

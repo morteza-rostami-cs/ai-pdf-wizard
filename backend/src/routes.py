@@ -1,6 +1,6 @@
 
 
-from fastapi import APIRouter, HTTPException, Depends, Response, Request, Body, Path, UploadFile, File, status, Query
+from fastapi import APIRouter, HTTPException, Depends, Response, Request, Body, Path, UploadFile, File, status, Query, Form
 from typing import Any
 import random
 import asyncio
@@ -10,11 +10,16 @@ from beanie import PydanticObjectId
 from bson import DBRef
 import json
 import uuid
+from fastapi import BackgroundTasks
+from fastapi.responses import StreamingResponse
+from beanie import Link
+from bson import ObjectId, DBRef
+import math
 
 # my imports
-from src.models import User, Otp, Upload
+from src.models import User, Otp, Upload, PDF
 from src.services import fire_task
-from src.dtos import TaskTypes, Dictor
+from src.dtos import TaskTypes, Dictor, UploadStatus
 from src.services import send_email, generate_jwt, verify_jwt, verify_token
 from src.config import settings
 from src.dependencies import auth_guard, guest_guard
@@ -248,12 +253,6 @@ async def create_user(
 # PDF upload routes
 #==============
 
-from fastapi import BackgroundTasks
-from fastapi.responses import StreamingResponse
-from beanie import Link
-from bson import ObjectId, DBRef
-from src.dtos import UploadStatus
-
 # open a SSE connection -> server sent event
 @pdf_router.get(path='/progress/{upload_id}')
 async def progress_stream(
@@ -266,7 +265,7 @@ async def progress_stream(
   # generator 
   async def event_generator():
 
-    # keep track of last percent upload
+    # keep track of last percent upload -> used to avoid sending duplicated progress
     last_percent = None
 
     # create a Upload record
@@ -277,20 +276,25 @@ async def progress_stream(
       upload = Upload(
         upload_id=upload_id,
         user=auth_user, # type: ignore
-        percent=0,
+        percent=0, # initial progress
         status=UploadStatus.UPLOADING, # start an upload
       )
       # save in db
       await upload.insert()
 
-    # our streaming loop
+    # our streaming loop -> as long as status = uploading -> yield the progress
     while True:
-      # break if sse disconnected
+      # break if sse disconnected -> client is disconnected
       if await request.is_disconnected():
         break
 
-      # find upload record by id -> 
+      # get fresh db record -> with updated percent
       upload: Any = await Upload.find_one(Upload.upload_id == upload_id)
+
+      # send data to frontend if:
+        # upload_doc.percent , is updated 
+        #or
+        # upload_doc.status == done or failed -> to inform frontend at the end of upload.status
 
       if upload.percent != last_percent or upload.status in {UploadStatus.DONE, UploadStatus.FAILED}:
         # this is the payload we send to client 
@@ -304,9 +308,11 @@ async def progress_stream(
         )
 
         # we stream each chunk to the frontend
+        # SSE -> expects lines starting with data: and terminated by two \n\n, mark the end of event
+        # (EventSource in browser) -> receives this as event.data
         yield f"data: {json.dumps(payload)}\n\n"
 
-        # set the last percent
+        # we don't resend the same value next loop -> only if percent is changed from /pdf-upload route
         last_percent = upload.percent
 
       # stop streaming -> done, failed
@@ -314,20 +320,141 @@ async def progress_stream(
         print("stop streaming --")
         break
 
-      await asyncio.sleep(1) # 1 seconds
+      await asyncio.sleep(1) # wait 1 seconds
 
-
+  # run generator and yield each loop data to client
   return StreamingResponse(event_generator(), media_type='text/event-stream')
   
+from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorGridFSBucket
+
 # upload pdf route
-@pdf_router.post("/upload-pdf")
+@pdf_router.post("/upload-pdf")# 
 async def upload_pdf(
-  background_tasks: BackgroundTasks,
-  data: Any = Body(...),
+  background_tasks: BackgroundTasks, # fastapi injects this 
+  request: Request,
+  # data: Any = Body(...),
+  file: UploadFile = File(...),
+  upload_id: str = Form(...),
+  file_size: int = Form(...),
   auth_user: User = Depends(dependency=auth_guard),
 ):
   """
   upload pdf chunk by chunk and increment upload process
+  """
+
+  # data
+  # file 
+  # upload_id
+  # auth_user
+
+  # db instance
+  db: AsyncIOMotorDatabase[Any] = request.app.state.mongo_db
+
+  # grid bucket
+  bucket = AsyncIOMotorGridFSBucket(database=db)
+
+  # upload progress record
+  upload_doc = await Upload.find_one(Upload.upload_id == upload_id)
+
+  if not upload_doc:
+    upload_doc = Upload(
+      upload_id=upload_id,
+      percent=0,
+      status=UploadStatus.UPLOADING,
+      user=auth_user # type: ignore
+    )
+    await upload_doc.insert()
+
+  else: # no Upload doc
+    # in start of our upload -> reset everything
+    upload_doc.percent = 0
+    upload_doc.status = UploadStatus.UPLOADING
+    upload_doc.file_id = None # gridfs_id
+
+    await upload_doc.save()
+
+  # background task: upload
+  async def upload_chunks(
+      file: UploadFile,
+      upload_id: str ,
+      user: User,
+  ):
+    try:
+      # open GridFs upload stream
+      grid_in = bucket.open_upload_stream(filename=file.filename) # type: ignore
+
+      chunk_size = 1024 * 1024 # 1 mb -> in each upload loop
+      total_bytes = 0 # track uploaded chunks
+
+      while True:
+        # read a chunk
+        chunk = await file.read(chunk_size)
+        print("\n******************\n\n")
+        print(total_bytes)
+        print("******************\n\n")
+        if not chunk:
+          break # not chunk left
+
+        # write to gridfs
+        await grid_in.write(data=chunk)
+
+        # increment total chunk read
+        total_bytes += len(chunk) # number of bytes
+
+        # calculate upload.percent
+        percent = math.floor((total_bytes / file_size) * 100)
+
+        # update upload doc
+        upload_doc = await Upload.find_one(Upload.upload_id == upload_id)
+        # increase upload progress
+        upload_doc.percent = min(percent, 100) # type: ignore
+
+        await upload_doc.save() # type: ignore
+
+      # close bucket
+      await grid_in.close()
+
+      # mark upload as done
+      upload_doc: Any = await Upload.find_one(Upload.upload_id == upload_id)
+      upload_doc.status = UploadStatus.DONE
+      upload_doc.file_id =str(grid_in._id)
+      upload_doc.percent = 100
+      await upload_doc.save()
+
+      # create a PDF doc -> metadata, text, html
+      pdf_doc = PDF(
+        filename=file.filename, # type: ignore
+        gridfs_id=str(grid_in._id),
+        upload_id=upload_id,
+        user=user # type: ignore
+      )
+      print(pdf_doc)
+      await pdf_doc.insert()
+
+    except Exception as e:
+      print(str(e))
+      # pdf upload failed
+      upload_doc = await Upload.find_one(Upload.upload_id == upload_id)
+      upload_doc.status = UploadStatus.FAILED # upload failed
+      upload_doc.error = str(e)
+      await upload_doc.save()
+
+  # background task
+  background_tasks.add_task(
+    upload_chunks, # async process /function
+    file,
+    upload_id,
+    user=auth_user
+  )
+
+  print(file.size, file_size)
+  print('=---------------------------------')
+  print(request.app.state.mongo_db)
+  print(f"✅ Received file: {file.filename}")
+  print(f"✅ Upload ID: {upload_id}")
+
+  return dict(message="✅ pdf upload success")
+
   """
   upload_id = data['upload_id']
 
@@ -361,7 +488,7 @@ async def upload_pdf(
 
       # update upload with new percentage and date
       doc: Any = await Upload.find_one(Upload.upload_id == upload_id,)
-      doc.percent = i * 10
+      doc.percent = i * 10 # 10, 20, 30
       doc.updated_at = datetime.now(timezone.utc)
 
       await doc.save()
@@ -379,6 +506,6 @@ async def upload_pdf(
     message="upload started",
     upload_id=upload_id
   )
-
+  """
 
 
