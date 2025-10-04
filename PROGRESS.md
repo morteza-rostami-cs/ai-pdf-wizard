@@ -218,3 +218,7 @@ All daily logs of implemented features, videos, and next steps.
 - Connect progress bar to real file uploads rather than simulated ones.
 
 ---
+
+### 🎥 Video
+
+- [Issue #2 playlist](https://www.youtube.com/playlist?list=PLcccwZD44KFT7zot2XkPLcsBERHcIELzO)

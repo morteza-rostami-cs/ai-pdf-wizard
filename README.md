@@ -20,7 +20,7 @@ A FastAPI + LangChain app for PDFs: upload, summarize, and chat with your docume
 
 - [issue #1 video](https://www.youtube.com/playlist?list=PLcccwZD44KFTqjAzkfjA97K67fIOMJy2i)
 
-- [ ] **Authentication & User Management**
+- [x] **Authentication & User Management**
 
   - User registration with email + OTP (via Gmail SMTP)
   - Login with OTP → issue JWT in HttpOnly cookie
@@ -28,6 +28,8 @@ A FastAPI + LangChain app for PDFs: upload, summarize, and chat with your docume
   - Protected & guest routes (backend + frontend guards)
   - Profile page with user info & avatar upload
   - Subscription scaffolding: `plan: "free"`, `usage: { pdfUploads, chatTokens }`
+
+- [issue #2 video](https://www.youtube.com/playlist?list=PLcccwZD44KFT7zot2XkPLcsBERHcIELzO)
 
 - [ ] **PDF Upload & Management**
 
