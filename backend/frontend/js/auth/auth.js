@@ -24,6 +24,7 @@ export async function fetchAuthUser() {
 
 // show elements only to auth user
 export function showIfAuth(...ids) {
+  console.log("start showIfAuth----");
   window.currentUserPromise.then((data) => {
     // const user = data.user;
     if (data.authenticated) {

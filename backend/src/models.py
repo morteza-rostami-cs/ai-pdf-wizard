@@ -157,6 +157,8 @@ class Upload(Document):
     #   IndexModel([('updated_at', 1)], expiresAfterSeconds=3600)
     # ]
 
+from src.dtos import PDFStatus
+
 # define a PDF model -> holds PDF metadata -> extracted text and html
 class PDF(Document):
   title: Optional[str] = None
@@ -170,6 +172,9 @@ class PDF(Document):
   # metadata
   user: Link[User] # required
 
+  # current processing status
+  status: PDFStatus = PDFStatus.UPLOADED
+
   # extracted text
   text_content: Optional[str] = None
   # extracted html
@@ -180,3 +185,13 @@ class PDF(Document):
 
   class Settings:
     name = "pdfs"
+
+  async def set_status(
+      self,
+      new_status: PDFStatus,
+      # message: 
+  ) -> None:
+    """ update the PDF status and timestamp """
+    self.status = new_status
+    self.updated_at = datetime.now(timezone.utc)
+    await self.save()

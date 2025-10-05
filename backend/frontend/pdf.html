@@ -66,9 +66,34 @@
       <p id="upload-status" class="text-sm mt-2 text-gray-600">waiting...</p>
     </div>
 
+    <!-- show a table of all user's pdfs -->
+    <div
+      class="w-full max-w-3xl bg-gray-50 rounded-xl shadow-lg p-6 mx-auto mt-6"
+    >
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b text-gray-600 uppercase text-sm">
+            <th class="py-2">PDF ID</th>
+            <th class="py-2">Filename</th>
+            <th class="py-2">Status</th>
+          </tr>
+        </thead>
+        <!-- inject table items here -->
+        <tbody id="pdfTableBody"></tbody>
+      </table>
+
+      <!-- table loading -->
+      <div id="pdf-loading" class="text-center text-gray-500 mt-4 hidden">
+        Loading PDFs...
+      </div>
+    </div>
+
     <!-- Flowbite JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 
     <script type="module" src="./js/pages/pdf-upload.js"></script>
+    <script type="module" src="./js/pdfs.js">
+      //import { fetchPDFs } from "./js/pdfs.js";
+    </script>
   </body>
 </html>

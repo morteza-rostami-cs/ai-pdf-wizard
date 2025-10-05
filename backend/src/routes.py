@@ -434,6 +434,8 @@ async def upload_pdf(
       
       await pdf_doc.insert()
 
+      # pdf upload success -> init pdf extraction process (task)
+
     except Exception as e:
       print(str(e))
       # pdf upload failed
@@ -458,57 +460,16 @@ async def upload_pdf(
 
   return dict(message="✅ pdf upload success")
 
-  """
-  upload_id = data['upload_id']
+from beanie import SortDirection
 
-  # create or set a upload doc
-  upload = await Upload.find_one(
-    Upload.upload_id == upload_id,
-  )
+# route /pdfs/my-pdfs
+@pdf_router.get("/my-pdfs", response_model=list[PDF])
+async def get_user_pdfs(
+  auth_user: User = Depends(dependency=auth_guard),
+):
+  """ return all pdfs belonging to the auth user """
+  # dict(user=DBRef(collection='users', id=user.id)
 
-  if not upload:
-    # create an upload
-    upload = Upload(
-      upload_id=upload_id,
-      percent=0,
-      status=UploadStatus.UPLOADING,
-      user=auth_user,  # type: ignore
-    )
-    await upload.insert()
-  else:
-    # reset upload record
-    upload.percent = 0
-    upload.status = UploadStatus.UPLOADING
-    upload.file_id = None
-
-    await upload.save()
-    
-  # simulate background chunk process
-  async def simulate_chunks(upload_id: str):
-    for i in range(1, 11): # 10 steps
-      # fake a delay
-      await asyncio.sleep(0.5)
-
-      # update upload with new percentage and date
-      doc: Any = await Upload.find_one(Upload.upload_id == upload_id,)
-      doc.percent = i * 10 # 10, 20, 30
-      doc.updated_at = datetime.now(timezone.utc)
-
-      await doc.save()
-
-    # out of loop -> mark as done
-    upload_doc: Any = await Upload.find_one(Upload.upload_id == upload_id)
-    upload_doc.status = UploadStatus.DONE
-    upload_doc.file_id = str(uuid.uuid4())
-
-    await upload_doc.save()
-
-  background_tasks.add_task(simulate_chunks, upload_id)
-
-  return dict(
-    message="upload started",
-    upload_id=upload_id
-  )
-  """
-
-
+  pdfs = await PDF.find(dict(user=DBRef(collection='users', id=auth_user.id))).sort([("created_at", SortDirection.DESCENDING)]).to_list()
+  
+  return pdfs

@@ -83,4 +83,6 @@ export const api = {
       body: data, // do not stringify formData
       // headers: { "Content-Type": "multipart/form-data" }, // let browser to set this
     }),
+
+  fetchPDFs: (data) => request("/pdfs/my-pdfs", { method: "GET" }),
 };

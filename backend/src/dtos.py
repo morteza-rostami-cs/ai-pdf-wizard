@@ -18,3 +18,10 @@ class UploadStatus(Enum):
   UPLOADING = 'uploading'
   DONE = 'done'
   FAILED = 'failed'
+
+class PDFStatus(str, Enum):
+  UPLOADED = 'uploaded'
+  PROCESSING = 'processing' # pdf text extraction
+  EMBEDDING = 'embedding' # vector db
+  READY = 'ready'
+  FAILED = 'failed'
