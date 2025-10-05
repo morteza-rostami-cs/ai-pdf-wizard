@@ -243,3 +243,18 @@ All daily logs of implemented features, videos, and next steps.
 - Trigger and manage a background **PDF processing job** after successful upload (next issue).
 
 ---
+
+#### 🗓️ **Day 7 — Issue #3: PDF Upload System**
+
+**Tasks Completed:**
+
+- Added `PDFStatus` field in PDF model for progress tracking (upload, processing, embedding, etc.)
+- Created `/pdfs/list` API route to retrieve all PDFs belonging to the logged-in user
+- Implemented frontend logic to display the user’s uploaded PDFs and their current status
+
+**Next Steps:**
+
+- Implement download and delete endpoints
+- Start PDF processing pipeline (text extraction, embedding)
+
+---
