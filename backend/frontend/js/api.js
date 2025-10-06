@@ -15,12 +15,15 @@ async function request(path, options = {}) {
     });
 
     let data;
-    try {
+    const contentType = response.headers.get("content-type");
+
+    if (contentType?.includes("application/json")) {
       data = await response.json();
-    } catch (err) {
-      // if backend does not return json -> fallback to text response
+    } else if (contentType?.includes("text/")) {
       data = await response.text();
-      console.log(data);
+    } else {
+      // binary stream -> eg: file download
+      data = await response.blob();
     }
 
     // http errors
@@ -85,4 +88,7 @@ export const api = {
     }),
 
   fetchPDFs: (data) => request("/pdfs/my-pdfs", { method: "GET" }),
+
+  downloadPDF: (pdf_id) =>
+    request(`/pdfs/download/${pdf_id}`, { method: "GET" }),
 };

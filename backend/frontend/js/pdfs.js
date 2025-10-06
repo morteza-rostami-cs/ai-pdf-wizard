@@ -1,6 +1,7 @@
 import { api } from "./api.js";
 
 export async function fetchPDFs() {
+  console.log("fetching all user pdfS");
   // table body
   const tbodyEl = document.getElementById("pdfTableBody");
   const loadingEl = document.getElementById("pdf-loading");
@@ -40,14 +41,49 @@ export async function fetchPDFs() {
             ${pdf.status}
           </span>
         </td>
+        <td class="py-2 text-gray-800">
+          <button 
+          class="downloadBtn bg-blue-300 hover:bg-blue-400 transition p-2 rounded-md"
+          >
+            download
+          </button>
+        </td>
       `;
 
       // render each row into table body
       tbodyEl.appendChild(row);
+
+      // attach click handler
+      const btn = row.querySelector(".downloadBtn");
+      btn.addEventListener("click", function () {
+        handleDownload(pdf._id, this);
+      });
     });
   } catch (err) {
     console.log(err);
     // set error
     loadingEl.textContent = "error loading PDFs.";
+  }
+}
+
+async function handleDownload(pdf_id, btn) {
+  // console.log(pdf_id, btn);
+  const originalText = btn.textContent; // block-scoped
+
+  try {
+    // set loading state
+    btn.textContent = "Loading...";
+    btn.disabled = true;
+
+    const data = await api.downloadPDF(pdf_id);
+
+    // console.log(data);
+  } catch (err) {
+    console.error(err);
+    window.alert("something went wrong while downloading PDF");
+  } finally {
+    // reset button
+    btn.textContent = originalText;
+    btn.disabled = false;
   }
 }

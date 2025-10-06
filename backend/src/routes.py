@@ -473,3 +473,55 @@ async def get_user_pdfs(
   pdfs = await PDF.find(dict(user=DBRef(collection='users', id=auth_user.id))).sort([("created_at", SortDirection.DESCENDING)]).to_list()
   
   return pdfs
+
+# download
+@pdf_router.get("/download/{pdf_id}") # gridFS
+async def download_pdf(
+  request: Request,
+  pdf_id: str = Path(..., description="PDF file ID"),
+  auth_user: User = Depends(auth_guard),
+):
+  # data:
+  # pdf_id
+  # auth_user.id
+  # request.app.state.mongo_db
+
+  """ download a stored file from GridFS """
+  mongo = request.app.state.mongo_db
+  bucket = AsyncIOMotorGridFSBucket(database=mongo)
+
+  # find a PDF by user and pdf_id
+  pdf_doc = await PDF.find_one(dict(
+    user=DBRef(collection='users', id=auth_user.id),
+    _id=ObjectId(pdf_id), # underscore & ObjectId
+  ))
+  
+  if not pdf_doc:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="file not found or access denied")
+
+  try:
+    # gridFS file id
+    file_id = ObjectId(pdf_doc.gridfs_id)
+
+    # open download stream
+    stream = await bucket.open_download_stream(file_id=file_id)
+
+    # filename and content_type -> for setting the headers
+
+    filename = stream._file.get("filename", "download.pdf")
+    content_type = stream._file.get("contentType", "application/pdf")
+
+    # response back to the client
+    return StreamingResponse(
+      stream,
+      media_type=content_type,
+      headers={
+        # Content-Disposition: inline -> for opening a tab
+        "Content-Disposition": f'attachment; filename="{filename}"'
+      }
+    )
+
+  except Exception as e:
+    # download failed
+    print("GridFS download failed: ", str(e))
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="file not found")
