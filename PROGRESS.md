@@ -258,3 +258,24 @@ All daily logs of implemented features, videos, and next steps.
 - Start PDF processing pipeline (text extraction, embedding)
 
 ---
+
+## Day 8 — PDF Download & Frontend Refactor
+
+### ✅ Completed
+
+- Added `/download` backend route to fetch files from **GridFS**.
+- Added **Download button** in frontend PDF list — users can now download their own uploaded PDFs.
+- After each successful upload, a **background text-processing task** is automatically triggered (no implementation yet).
+- 🧩 **Frontend Refactor:** Centralized all initialization logic into a single `main.js` entry point to avoid race conditions between scripts.
+
+  - Handles global setup like `authGuard()` and `loadHeader()`.
+  - Initializes shared promises (e.g., `currentUserPromise`) before page scripts run.
+  - Dynamically loads page-specific modules based on `data-page`.
+
+### 🧱 Result
+
+- Smooth end-to-end upload and download flow.
+- Stable and predictable frontend initialization for all pages.
+- Foundation ready for upcoming **PDF text extraction pipeline**.
+
+---
