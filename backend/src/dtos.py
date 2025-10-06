@@ -4,7 +4,9 @@ from typing import TypeAlias, Any
 # tasks types
 class TaskTypes(Enum):
   """ different types of tasks """
-  TEST = 'test'
+  PROCESSING = 'processing' # pdf text extraction
+  EMBEDDING = 'embedding' # vectorize & store in chroma db
+
 
 class TaskStatus(Enum):
   INCOMPLETE = 'incomplete'

@@ -218,14 +218,7 @@ async def me(request: Request):
 @user_router.get(path='')
 async def get_users() -> Any:
 
-  # fire a test task
-  task = await fire_task(
-    task_type= TaskTypes.TEST,
-    payload={
-      "message": "what's up!?"
-    }
-  )
-
+  
 
   users = await User.find_all().to_list()
   return users
@@ -435,6 +428,10 @@ async def upload_pdf(
       await pdf_doc.insert()
 
       # pdf upload success -> init pdf extraction process (task)
+      await fire_task(
+        task_type=TaskTypes.PROCESSING,
+        payload=dict(pdf_id=pdf_doc.id, user_id=auth_user.id)
+      )
 
     except Exception as e:
       print(str(e))
@@ -525,3 +522,5 @@ async def download_pdf(
     # download failed
     print("GridFS download failed: ", str(e))
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="file not found")
+
+# 

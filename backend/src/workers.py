@@ -7,10 +7,10 @@ from src.dtos import TaskStatus, TaskTypes
 from src.models import Task
 
 # process test task
-async def process_test_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
+async def process_text_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
   """ just fake processing a task """
 
-  print(f"process task: {task.task_type}🍆")
+  print(f"\nprocess task: {task.task_type}🍆\n")
 
   # get task.payload - and process task
 
@@ -30,8 +30,8 @@ async def process_task(task: Task, db: AsyncIOMotorDatabase[Any]):
 
     task_type = task.task_type
 
-    if task_type == TaskTypes.TEST:
-      await process_test_task(task=task, db=db)
+    if task_type == TaskTypes.PROCESSING:
+      await process_text_task(task=task, db=db)
     else:
       raise ValueError(f"we don't process this type of task {task_type}")
 
