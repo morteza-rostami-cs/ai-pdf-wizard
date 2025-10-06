@@ -20,21 +20,10 @@
     </style>
 
     <script type="module" src="./js/main.js"></script>
-
-    <!-- only authenticate user can access this page -->
-    <script type="module">
-      import { authGuard } from "./js/auth/authGuard.js";
-      authGuard();
-    </script>
   </head>
-  <body class="bg-gray-100 min-h-screen">
+  <body class="bg-gray-100 min-h-screen" data-page="profile">
     <!-- site header -->
     <div id="header"></div>
-    <script type="module">
-      import { loadHeader } from "./js/header.js";
-
-      loadHeader();
-    </script>
 
     <div class="bg-white shadow-lg rounded-xl p-6 w-96 mx-auto mt-10">
       <h1 class="text-2xl font-bold mb-4 text-center">Profile</h1>
@@ -50,22 +39,6 @@
         </p>
       </div>
     </div>
-
-    <!-- load some users data for test -->
-
-    <script type="module">
-      import { getAuthData } from "./js/auth/auth.js";
-
-      // get fresh user data
-      getAuthData((user) => {
-        console.log(user);
-        const email = document.getElementById("email");
-        const plan = document.getElementById("planType");
-
-        email.textContent = user.email;
-        plan.textContent = user.plan;
-      });
-    </script>
 
     <!-- Flowbite JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>

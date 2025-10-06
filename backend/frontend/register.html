@@ -20,20 +20,10 @@
     </style>
 
     <script type="module" src="./js/main.js"></script>
-
-    <script type="module">
-      import { guestGuard } from "./js/auth/guestGuard.js";
-      guestGuard();
-    </script>
   </head>
-  <body class="bg-gray-100 text-gray-800">
+  <body class="bg-gray-100 text-gray-800" data-page="register">
     <!-- site header -->
     <div id="header"></div>
-    <script type="module">
-      import { loadHeader } from "./js/header.js";
-
-      loadHeader();
-    </script>
 
     <!-- Page content -->
     <main class="flex items-center justify-center min-h-screen pt-24 px-4">
@@ -74,8 +64,5 @@
 
     <!-- Flowbite JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
-
-    <!-- register javascript -->
-    <script type="module" src="./js/pages/register.js"></script>
   </body>
 </html>

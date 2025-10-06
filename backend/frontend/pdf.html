@@ -21,21 +21,10 @@
     </style>
 
     <script type="module" src="./js/main.js"></script>
-
-    <!-- only authenticate user can access this page -->
-    <script type="module">
-      import { authGuard } from "./js/auth/authGuard.js";
-      authGuard();
-    </script>
   </head>
-  <body class="p-2">
+  <body class="p-2" data-page="upload">
     <!-- site header -->
     <div id="header"></div>
-    <script type="module">
-      import { loadHeader } from "./js/header.js";
-
-      loadHeader();
-    </script>
 
     <div class="mx-auto mt-10 bg-gray-100 max-w-[500px] p-4">
       <h1>Upload a PDF</h1>
@@ -90,10 +79,5 @@
 
     <!-- Flowbite JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
-
-    <script type="module" src="./js/pages/pdf-upload.js"></script>
-    <script type="module" src="./js/pdfs.js">
-      //import { fetchPDFs } from "./js/pdfs.js";
-    </script>
   </body>
 </html>

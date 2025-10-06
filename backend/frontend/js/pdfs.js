@@ -51,8 +51,3 @@ export async function fetchPDFs() {
     loadingEl.textContent = "error loading PDFs.";
   }
 }
-
-// run on page load
-document.addEventListener("DOMContentLoaded", () => {
-  fetchPDFs();
-});

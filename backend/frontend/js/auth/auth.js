@@ -59,7 +59,7 @@ export async function logout() {
     window.Auth.user = null;
 
     // redirect to login
-    window.location.href = "/frontend/login.html";
+    window.location.href = "/login.html";
   } catch (err) {
     console.error("logout request failed: ", err);
   }
@@ -75,9 +75,7 @@ export function attachLogoutButton(buttonId = "logout-btn") {
 }
 
 export function getAuthData(func = (data) => {}) {
-  document.addEventListener("DOMContentLoaded", () => {
-    window.currentUserPromise.then((data) => {
-      func(data.user);
-    });
+  window.currentUserPromise.then((data) => {
+    func(data.user);
   });
 }
