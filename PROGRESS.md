@@ -279,3 +279,25 @@ All daily logs of implemented features, videos, and next steps.
 - Foundation ready for upcoming **PDF text extraction pipeline**.
 
 ---
+
+### 🧩 Day 9 — Issue #5: PDF Processing Pipeline (Extraction & Metadata Storage)
+
+**Progress Summary:**
+Implemented the core text extraction pipeline for uploaded PDFs.
+When a user uploads a PDF, an asynchronous background task now processes the file, extracts both text and HTML for each page, and stores them in a new `PdfPage` model.
+
+**✅ Completed Tasks**
+
+- Added **PDF text extraction service** to handle page-by-page parsing.
+- Introduced **PdfPage model** to store text and HTML for each page.
+- Updated **async task handler** to run the extraction service after file upload.
+- Linked extracted pages to their parent PDF record.
+- Automatically updated the PDF’s **status** to `"embedding"` after extraction completes — preparing for the next pipeline stage.
+
+**💡 Outcome:**
+Each PDF is now decomposed into its individual pages, with structured text and HTML content ready for embedding or further semantic processing.
+
+**🔗 Related Issue:** [#5 — PDF Processing Pipeline (Extraction & Metadata Storage)](../issues/5)
+**🔗 Commit:** [`355b9ab`](../commit/355b9ab)
+
+---
