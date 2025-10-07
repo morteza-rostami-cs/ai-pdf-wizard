@@ -24,6 +24,7 @@ class UploadStatus(Enum):
 class PDFStatus(str, Enum):
   UPLOADED = 'uploaded'
   PROCESSING = 'processing' # pdf text extraction
+  NEED_OCR = 'need_ocr' # Optical Character Recognition
   EMBEDDING = 'embedding' # vector db
   READY = 'ready'
   FAILED = 'failed'

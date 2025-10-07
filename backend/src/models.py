@@ -85,14 +85,14 @@ class Task(Document):
     """
 
     self.error = error_msg
-    self.retries += 1
+    self.retries += 1 # fails -> increment retry
 
     if self.retries < self.max_retries:
       # failed and done!
-      self.status = TaskStatus.FAILED
+      self.status = TaskStatus.INCOMPLETE
     else:
       # still can try
-      self.status = TaskStatus.INCOMPLETE
+      self.status = TaskStatus.FAILED
     
     self.updated_at = datetime.now(timezone.utc)
     await self.save()
@@ -195,3 +195,18 @@ class PDF(Document):
     self.status = new_status
     self.updated_at = datetime.now(timezone.utc)
     await self.save()
+
+class PdfPage(Document):
+  pdf: Link[PDF] # reference to PDF
+  page_number: int
+  text: str # page text
+  html: str # page html
+  snippet: str
+  need_ocr: bool # some pdf pages are images
+  user: Link[User]
+
+  created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+  updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+  class Settings:
+    name = "pdf_pages"

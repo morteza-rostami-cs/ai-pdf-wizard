@@ -1,21 +1,63 @@
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from typing import Any
 import asyncio
+from bson import ObjectId
 
 # my imports 
-from src.dtos import TaskStatus, TaskTypes
-from src.models import Task
+from src.dtos import TaskStatus, TaskTypes, PDFStatus
+from src.models import Task, PDF, User
+from src.services import extract_text_service, fire_task
 
 # process test task
 async def process_text_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
-  """ just fake processing a task """
+  """ task handler: extract text + html from PDF stored in GridFS """
 
-  print(f"\nprocess task: {task.task_type}🍆\n")
+  # data
+  pdf_id = task.payload['pdf_id']
+  user_id = task.payload["user_id"]
 
-  # get task.payload - and process task
+  # find PDF 
+  pdf_doc = await PDF.get(document_id=ObjectId(pdf_id))
 
-  # mark task as done
-  await task.mark_done()
+  if not pdf_doc:
+    raise ValueError("PDF not found")
+
+  try:
+
+    # find User
+    user_doc = await User.get(document_id=ObjectId(user_id))
+
+    if not user_doc:
+      raise ValueError("User not found")
+
+    # call service
+    await extract_text_service(
+      db=db,
+      pdf_doc=pdf_doc,
+      user_doc=user_doc,
+    )
+
+    # extraction success
+
+    # update status
+    await task.mark_done()
+
+    # enqueue a embedding task
+    await fire_task(
+      task_type=TaskTypes.EMBEDDING,
+      payload=dict(pdf_id= pdf_id, user_id=user_id),
+    )
+  
+  except Exception as e:
+    # text extraction process has failed
+    print(f"text extraction failed: {str(e)}")
+
+    # set task & PDF to status failed
+    await task.mark_failed(error_msg=str(e))
+
+    # PDF status
+    await pdf_doc.set_status(new_status=PDFStatus.FAILED)
+
 
 # process each task based on type
 

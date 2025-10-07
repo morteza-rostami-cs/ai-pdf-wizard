@@ -382,9 +382,7 @@ async def upload_pdf(
       while True:
         # read a chunk
         chunk = await file.read(chunk_size)
-        print("\n******************\n\n")
-        print(total_bytes)
-        print("******************\n\n")
+        
         if not chunk:
           break # not chunk left
 
@@ -448,12 +446,6 @@ async def upload_pdf(
     upload_id,
     user=auth_user
   )
-
-  print(file.size, file_size)
-  print('=---------------------------------')
-  print(request.app.state.mongo_db)
-  print(f"✅ Received file: {file.filename}")
-  print(f"✅ Upload ID: {upload_id}")
 
   return dict(message="✅ pdf upload success")
 
