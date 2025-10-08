@@ -8,6 +8,7 @@ langchain
 langchain-core
 langchain-community
 langchain-ollama
+langchain-chroma
 ollama
 dotenv
 #langchain draw graph

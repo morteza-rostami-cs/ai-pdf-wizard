@@ -14,6 +14,7 @@ from fastapi import BackgroundTasks
 from fastapi.responses import StreamingResponse
 from beanie import Link
 from bson import ObjectId, DBRef
+from beanie import SortDirection
 import math
 
 # my imports
@@ -449,7 +450,7 @@ async def upload_pdf(
 
   return dict(message="✅ pdf upload success")
 
-from beanie import SortDirection
+
 
 # route /pdfs/my-pdfs
 @pdf_router.get("/my-pdfs", response_model=list[PDF])

@@ -4,15 +4,20 @@ from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError
 from fastapi import HTTPException, status, Request
 import fitz
-from bson import ObjectId
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket, AsyncIOMotorDatabase
 from typing import Any
 from fitz import Document, Page
+from dataclasses import asdict
+from beanie import PydanticObjectId
+
+from bson import ObjectId, DBRef
+from beanie import SortDirection
 
 # my imports 
 from src.dtos import TaskTypes, Dictor, PDFStatus
 from src.models import Task, PDF, PdfPage, User
 from src.config import settings
+from src.schemas import PageMetadata
 
 # fire tasks 
 async def fire_task(
@@ -222,6 +227,71 @@ async def extract_text_service(
     ocr_pages=ocr_pages,
     pdf_id=str(pdf_doc.id)
   )
+
+
+# ================================= prepare pages for embedding
+
+async def prepare_page_for_embedding(
+    pdf_id: str # PDF
+) -> list[dict[str, Any]]:
+  """
+  prepares text + metadata per PDF page for embedding.
+  skip if PDF requires OCR.
+  """
+
+  # fetch PDF doc
+  pdf_doc = await PDF.get(document_id=ObjectId(pdf_id))
+
+  if not pdf_doc:
+    raise ValueError(f"PDF {pdf_id} not found")
+
+  # check for ocr
+  if pdf_doc.status == PDFStatus.NEED_OCR:
+    print(f"skipping PDF {pdf_id}: OCR required")
+    return []
+
+  # based on PDF, fetch all PdfPage's
+  #pages = await PdfPage.find_many(dict(pdf_id=ObjectId(pdf_id))).sort("+page_number").to_list()
+
+  # pages = await PdfPage.find_many(
+  #   dict(pdf=DBRef(collection='pdfs', id=pdf_id))
+  # ).sort([("page_number", SortDirection.ASCENDING)]).to_list()
+
+  pages = await PdfPage.find_many(PdfPage.pdf.id == PydanticObjectId(pdf_id)).sort("+page_number").to_list() # type: ignore
+
+  # check for pages
+  total_pages = len(pages)
+  if not total_pages:
+    print(f"no pages found for PDF {pdf_id}")
+    return []
+
+  # build list for embedding
+  docs_to_embed: list[Any] = []
+
+  # user on pdf_doc
+  user = await pdf_doc.user.fetch()
+
+  if not user:
+    print('can not fetch user')
+    return []
+
+  for page in pages:
+    meta = PageMetadata(
+      pdf_id=pdf_id,
+      user_id=str(user.id), # type: ignore
+      page_number=page.page_number,
+      total_pages=total_pages,
+      filename=pdf_doc.filename,
+      uploaded_at=pdf_doc.created_at.isoformat(),
+    )
+
+    docs_to_embed.append(dict(
+      text=page.text, # type: ignore
+      metadata=asdict(meta)
+    ))
+
+  return docs_to_embed
+
 
 
 # ================================= pdf embedding service

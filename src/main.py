@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
 from src.models import User, Task, Otp, Upload, PDF, PdfPage
 from src.workers import task_worker_loop
-
+import src.langchain
 
 # my routes --------------------------
 from src.routes import user_router, pdf_router
@@ -75,8 +75,6 @@ app = FastAPI(
   lifespan=lifespan
 )
 
-
-
 # allowed origins
 origins = [
   "http://127.0.0.1:5500",
@@ -93,15 +91,18 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
+from src.services import prepare_page_for_embedding
 # /index 
-# @app.get('/')
-# async def index() -> Any:
-
-#   return {
-#     "status": "ok",
-#     "message": "from /index route",
-#     "db_name": settings.MONGO_DB_NAME,
-#   }
+@app.get('/api')
+async def index() -> Any:
+  res = await prepare_page_for_embedding(pdf_id='68e4ca233855e5013730ada5')
+  
+  return {
+    "status": "ok",
+    "message": "from /index route",
+    "db_name": settings.MONGO_DB_NAME,
+    "res": res
+  }
 
 # --------------------------
 # routes
