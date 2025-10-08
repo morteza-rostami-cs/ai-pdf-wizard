@@ -305,3 +305,30 @@ Each PDF is now decomposed into its individual pages, with structured text and H
 ### 🎥 Video
 
 - [Issue #3 playlist](https://www.youtube.com/playlist?list=PLcccwZD44KFT-CiYP_qLok74DWB_H_En9)
+
+---
+
+## Day 10 (WIP) — LangChain & Chroma Setup / Backend Refactor
+
+### ✅ Completed
+
+- **LangChain / Chroma prep**:
+
+  - Implemented `prepare_page_for_embedding()` function to fetch PDF pages and prepare text + metadata for embedding.
+  - Added `PageMetadata` dataclass for schema of metadata stored with each chunk in Chroma DB.
+  - Skips PDFs that require OCR.
+  - Handles per-page data for each PDF and associates it with the uploading user.
+
+- **Backend folder refactor**:
+
+  - Moved all `./backend` files to project root (`./`) for simpler structure.
+  - Updated imports and paths accordingly.
+  - No functional changes, purely organizational improvement.
+
+### 🔜 Next
+
+- Implement actual embedding with ChromaDB.
+- Continue with pipeline for text embeddings and vector storage.
+- Integrate embedding tasks with async PDF processing workflow.
+
+---
