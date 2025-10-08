@@ -301,3 +301,7 @@ Each PDF is now decomposed into its individual pages, with structured text and H
 **🔗 Commit:** [`355b9ab`](../commit/355b9ab)
 
 ---
+
+### 🎥 Video
+
+- [Issue #3 playlist](https://www.youtube.com/playlist?list=PLcccwZD44KFT-CiYP_qLok74DWB_H_En9)

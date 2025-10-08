@@ -31,12 +31,14 @@ A FastAPI + LangChain app for PDFs: upload, summarize, and chat with your docume
 
 - [issue #2 video](https://www.youtube.com/playlist?list=PLcccwZD44KFT7zot2XkPLcsBERHcIELzO)
 
-- [ ] **PDF Upload & Management**
+- [x] **PDF Upload & Management**
 
   - Upload PDFs (GridFS or filesystem + metadata in Mongo)
   - Show upload progress & status (uploaded / processing / embedding / ready / failed)
   - List uploaded PDFs in user dashboard
   - Delete PDFs
+
+- [issue #3 video](https://www.youtube.com/playlist?list=PLcccwZD44KFT-CiYP_qLok74DWB_H_En9)
 
 - [ ] **PDF Processing Pipeline**
 
