@@ -39,8 +39,8 @@ class PageMetadata:
   """ an schema for page metadata we store along with each chunk in chroma db """
   pdf_id: str # PDF
   user_id: str
-  page_number: int
-  total_pages: int
+  page_number: str
+  total_pages: str
   filename: str
   #file_path: str
   uploaded_at: str # ISO datetime

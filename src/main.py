@@ -12,7 +12,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings
 from src.models import User, Task, Otp, Upload, PDF, PdfPage
 from src.workers import task_worker_loop
-import src.langchain
 
 # my routes --------------------------
 from src.routes import user_router, pdf_router
@@ -91,17 +90,20 @@ app.add_middleware(
   allow_headers=["*"],
 )
 
-from src.services import prepare_page_for_embedding
+#from src.services import embedding_service
+#from src.langchain import delete_pdf_vectors
 # /index 
 @app.get('/api')
 async def index() -> Any:
-  res = await prepare_page_for_embedding(pdf_id='68e4ca233855e5013730ada5')
-  
+  #res = await embedding_service(pdf_id='68e4ca233855e5013730ada5')
+
+  #delete_pdf_vectors(collection_name='pdf_chunks', pdf_id="68e7662fc0a6b187c312f5b7")
+
   return {
     "status": "ok",
     "message": "from /index route",
     "db_name": settings.MONGO_DB_NAME,
-    "res": res
+  #  "res": res
   }
 
 # --------------------------

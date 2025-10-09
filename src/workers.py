@@ -6,7 +6,7 @@ from bson import ObjectId
 # my imports 
 from src.dtos import TaskStatus, TaskTypes, PDFStatus
 from src.models import Task, PDF, User
-from src.services import extract_text_service, fire_task
+from src.services import extract_text_service, fire_task, embedding_service
 
 # process test task
 async def process_text_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
@@ -58,6 +58,41 @@ async def process_text_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
     # PDF status
     await pdf_doc.set_status(new_status=PDFStatus.FAILED)
 
+# embedding task handler
+async def handle_embedding_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
+  """ task handler: generate embeddings for extracted PDF text """
+
+  pdf_id = task.payload.get("pdf_id")
+
+  if not pdf_id:
+    raise ValueError("missing pdf_id")
+
+  pdf_doc = await PDF.get(document_id=ObjectId(pdf_id))
+  if not pdf_doc:
+    raise ValueError("PDF doc not found")
+
+  try:
+
+    # embedding service
+    await embedding_service(pdf_id=pdf_id)
+
+    # assume embedding was success
+
+    await task.mark_done()
+
+    await pdf_doc.set_status(new_status=PDFStatus.READY) # PDF is ready to use
+
+    print(f"🍷 PDF is ready to use 🍷")
+
+  except Exception as e:
+    # embedding process has failed
+    print(f"embedding failed for: {pdf_id}: {str(e)}")
+
+    # mark task as failed
+    await task.mark_failed(error_msg=str(e))
+
+    # PDF status
+    await pdf_doc.set_status(new_status=PDFStatus.FAILED)
 
 # process each task based on type
 
@@ -74,6 +109,10 @@ async def process_task(task: Task, db: AsyncIOMotorDatabase[Any]):
 
     if task_type == TaskTypes.PROCESSING:
       await process_text_task(task=task, db=db)
+
+    elif task_type == TaskTypes.EMBEDDING:
+      await handle_embedding_task(task=task, db=db)
+    
     else:
       raise ValueError(f"we don't process this type of task {task_type}")
 

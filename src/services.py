@@ -18,6 +18,7 @@ from src.dtos import TaskTypes, Dictor, PDFStatus
 from src.models import Task, PDF, PdfPage, User
 from src.config import settings
 from src.schemas import PageMetadata
+from src.langchain import chunk_pdf_for_embed, create_embedding, store_in_chroma
 
 # fire tasks 
 async def fire_task(
@@ -277,10 +278,10 @@ async def prepare_page_for_embedding(
 
   for page in pages:
     meta = PageMetadata(
-      pdf_id=pdf_id,
+      pdf_id=str(pdf_id),
       user_id=str(user.id), # type: ignore
-      page_number=page.page_number,
-      total_pages=total_pages,
+      page_number=str(page.page_number),
+      total_pages=str(total_pages),
       filename=pdf_doc.filename,
       uploaded_at=pdf_doc.created_at.isoformat(),
     )
@@ -295,3 +296,25 @@ async def prepare_page_for_embedding(
 
 
 # ================================= pdf embedding service
+
+async def embedding_service(pdf_id: str):
+
+  # fetch and ready data to vectorize
+  data = await prepare_page_for_embedding(pdf_id=pdf_id)
+
+  # chunk our data
+  chunks = chunk_pdf_for_embed(
+    pages_data=data,
+  )
+
+  # vectorize
+  results = await create_embedding(
+    chunks=chunks,
+  )
+
+  store_in_chroma(
+    collection_name="pdf_chunks",
+    embedding_data=results,
+  )
+
+  return results
