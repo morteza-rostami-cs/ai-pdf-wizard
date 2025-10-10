@@ -332,3 +332,28 @@ Each PDF is now decomposed into its individual pages, with structured text and H
 - Integrate embedding tasks with async PDF processing workflow.
 
 ---
+
+### 🗓️ **Day 11 — PDF Embedding Pipeline Complete**
+
+**Issue:** [#6 — PDF Embedding Pipeline (Chroma + Ollama + LangChain)](https://github.com/morteza-rostami-cs/ai-pdf-wizard/issues/6)
+**Commit:** [`28bfcd5`](https://github.com/morteza-rostami-cs/ai-pdf-wizard/commit/28bfcd5)
+
+#### ✅ Summary
+
+Implemented the complete **PDF embedding pipeline**, connecting text extraction results with the vector database.
+Each uploaded PDF is now embedded using a local LLM and stored in ChromaDB for future semantic retrieval.
+
+#### 🔧 What’s Done
+
+- Integrated **LangChain** for chunking per-page text into semantic units.
+- Used **Ollama embeddings** to generate local vector representations.
+- Persisted embeddings and metadata in **ChromaDB** (`data/chroma/pdf_chunks`).
+- Implemented vector deletion by `pdf_id` for cleanup and reprocessing.
+- End-to-end pipeline now covers:
+  `Upload → Extraction → Embedding → Ready for Querying`.
+
+#### 🚀 Outcome
+
+PDFs are now fully prepared for vector search and intelligent question answering in the upcoming stages.
+
+---
