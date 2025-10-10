@@ -357,3 +357,40 @@ Each uploaded PDF is now embedded using a local LLM and stored in ChromaDB for f
 PDFs are now fully prepared for vector search and intelligent question answering in the upcoming stages.
 
 ---
+
+## 🧩 Day 12 — Centralized Event System (SSE → WebSocket)
+
+**Goal:**
+Implement a robust real-time event system for backend–frontend communication using pub/sub architecture.
+
+### ✅ Achievements
+
+- Designed and implemented an **in-memory `EventManager`** for managing real-time events.
+
+  - Supports **per-user subscriptions**, **unsubscriptions**, and **broadcast publishing**.
+  - Built on **`asyncio.Queue`** with locking for concurrency safety.
+  - Includes global `event_manager` singleton instance.
+
+- Added **SSE connection route** (`/sse`) integrated with the pub/sub system.
+
+  - Real-time delivery of events to authenticated users.
+  - Implemented **heartbeat**, **disconnect detection**, and **graceful unsubscribe**.
+  - Added `/sse/test` route for publishing test events.
+
+- Integrated **frontend with the centralized event system**.
+
+  - Established persistent connection using `EventSource` (`connectSse()`).
+  - Automatically connects only when the user is authenticated.
+  - Handles open, message, custom events, and errors gracefully.
+
+- Transitioned from **SSE to WebSocket** for improved reliability and bidirectional communication.
+
+  - Solved FastAPI shutdown blocking caused by pending SSE generators.
+  - Implemented proper cleanup, reconnection, and authentication handling for sockets.
+
+### 🧠 Outcome
+
+The system now supports **real-time event delivery** across the stack — enabling status updates, notifications, and live feedback with minimal overhead.
+This marks the foundation for live PDF status streaming and other interactive features.
+
+---
