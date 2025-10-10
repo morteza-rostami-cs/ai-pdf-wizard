@@ -14,7 +14,7 @@ from src.models import User, Task, Otp, Upload, PDF, PdfPage
 from src.workers import task_worker_loop
 
 # my routes --------------------------
-from src.routes import user_router, pdf_router
+from src.routes import user_router, pdf_router, sse_router
 
 # lifespan -> runs on server start 
 @asynccontextmanager
@@ -112,6 +112,7 @@ async def index() -> Any:
 
 app.include_router(router=user_router, prefix='/api')
 app.include_router(router=pdf_router, prefix='/api')
+app.include_router(router=sse_router, prefix='/api')
 
 from fastapi.staticfiles import StaticFiles
 # has to come after other /api routes

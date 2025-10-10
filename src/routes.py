@@ -31,6 +31,7 @@ from src.schemas import RegisterInput, LoginInput, ProfileResponse, UserCreate, 
 # routers 
 user_router = APIRouter(prefix='/users', tags=['users'])
 pdf_router = APIRouter(prefix='/pdfs', tags=['pdfs'])
+sse_router = APIRouter(prefix='/sse', tags=['sse'])
 
 #==============
 # User routes
@@ -516,4 +517,17 @@ async def download_pdf(
     print("GridFS download failed: ", str(e))
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="file not found")
 
-# 
+#==============
+# SSE routes
+#==============
+
+@sse_router.get("/sse")
+async def sse_endpoint(
+  request: Request,
+  auth_user: Any = Depends(auth_guard),
+):
+  """
+  single SSE connection for the authenticated user.
+  """
+
+  pass
