@@ -520,6 +520,9 @@ async def download_pdf(
 #==============
 # SSE routes
 #==============
+from src.events import event_manager
+from typing import AsyncGenerator
+from src.services import format_sse
 
 @sse_router.get("/sse")
 async def sse_endpoint(
@@ -530,4 +533,93 @@ async def sse_endpoint(
   single SSE connection for the authenticated user.
   """
 
-  pass
+  user_id = str(auth_user.id)
+
+  # subscribe user client ->and return the queue
+  queue = await event_manager.subscribe(user_id=user_id)
+
+  # incremental message id
+  msg_id = 0
+
+  # generator -> response through sse connection -> we need a generator
+  async def event_generator() -> AsyncGenerator[str, None]:
+    nonlocal msg_id
+
+    try:
+      # send a welcome message on client connect
+      welcome = dict(message="connected", user_id=user_id)
+
+      # yield this message to our clients
+      yield format_sse(
+        message_id=msg_id, 
+        event_name="connected",
+        data=json.dumps(welcome)
+      )
+      # increment message id
+      msg_id += 1
+
+      # send a heartbeat every 15 second to client
+      HEARTBEAT = 15
+
+      while True:
+        try:
+          # either send event message or send a heartbeat on timeout
+          text = await asyncio.wait_for(
+            queue.get(), # await a message inside our queue
+            timeout=HEARTBEAT,
+          ) 
+
+          #get data out of our event
+          payload = json.loads(text)
+
+          print("data out of our event: 🍹", payload)
+
+          event_name = payload.get("event")
+          data = json.dumps(payload.get('data'))
+
+          # send a message to our client
+          yield format_sse(
+            message_id=msg_id,
+            event_name=event_name,
+            data=data
+          )
+
+          msg_id += 1
+
+        except asyncio.TimeoutError:
+          # send a heartbeat -> on timeout
+          yield ":ping\n\n"
+
+        # detect client disconnect
+        if await request.is_disconnected():
+          break
+
+    finally:
+      # connection is closed -> so unsub the user
+      await event_manager.unsubscribe(user_id=user_id, q=queue)
+    
+  return StreamingResponse(
+    event_generator(), 
+    media_type="text/event-stream"
+  )
+
+from datetime import datetime, timezone
+
+# test sse route
+@sse_router.post("/sse/test")
+async def sse_test(
+  auth_user: Any = Depends(auth_guard),
+):
+  """ test: publish and event that goes to auth user """
+
+  user_id = str(auth_user.id)
+
+  payload = dict(msg="hello from my server", ts=datetime.now(timezone.utc).isoformat())
+
+  await event_manager.publish(
+    user_id=user_id,
+    event="test_event",
+    data=payload,
+  )
+
+  return dict(ok= True)

@@ -318,3 +318,28 @@ async def embedding_service(pdf_id: str):
   )
 
   return results
+
+
+# sse event strings formatter
+def format_sse(
+    message_id: int | None,
+    event_name: str | None,
+    data: str, # json string
+) -> str:
+  """ return  a properly formatted SSE event string """
+  event_str = ""
+
+  if message_id is not None:
+    event_str += f"id: {message_id}\n"
+
+  if event_name:
+    event_str += f"event: {event_name}\n"
+
+  # sse data \n
+  for line in data.splitlines(): # [line1, line2]
+    event_str += f"data: {line}\n"
+
+  # \n\n
+  event_str += '\n'
+
+  return event_str
