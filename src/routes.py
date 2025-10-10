@@ -247,78 +247,6 @@ async def create_user(
 #==============
 # PDF upload routes
 #==============
-
-# open a SSE connection -> server sent event
-@pdf_router.get(path='/progress/{upload_id}')
-async def progress_stream(
-  request: Request,
-  upload_id: str = Path(...),
-  auth_user: User = Depends(dependency=auth_guard)
-): 
-  """ SSE endpoint that streams upload progress  for a given upload_id session """
-
-  # generator 
-  async def event_generator():
-
-    # keep track of last percent upload -> used to avoid sending duplicated progress
-    last_percent = None
-
-    # create a Upload record
-    upload = await Upload.find_one(Upload.upload_id == upload_id)
-
-    # we start new upload process
-    if not upload:
-      upload = Upload(
-        upload_id=upload_id,
-        user=auth_user, # type: ignore
-        percent=0, # initial progress
-        status=UploadStatus.UPLOADING, # start an upload
-      )
-      # save in db
-      await upload.insert()
-
-    # our streaming loop -> as long as status = uploading -> yield the progress
-    while True:
-      # break if sse disconnected -> client is disconnected
-      if await request.is_disconnected():
-        break
-
-      # get fresh db record -> with updated percent
-      upload: Any = await Upload.find_one(Upload.upload_id == upload_id)
-
-      # send data to frontend if:
-        # upload_doc.percent , is updated 
-        #or
-        # upload_doc.status == done or failed -> to inform frontend at the end of upload.status
-
-      if upload.percent != last_percent or upload.status in {UploadStatus.DONE, UploadStatus.FAILED}:
-        # this is the payload we send to client 
-        payload = dict(
-          upload_id= upload.upload_id,
-          percent= upload.percent, # we show this on our UI
-          # convert enum to string -> json.dumps can't serialize Enum
-          status= upload.status.value,
-          file_id= upload.file_id,
-          error= upload.error,
-        )
-
-        # we stream each chunk to the frontend
-        # SSE -> expects lines starting with data: and terminated by two \n\n, mark the end of event
-        # (EventSource in browser) -> receives this as event.data
-        yield f"data: {json.dumps(payload)}\n\n"
-
-        # we don't resend the same value next loop -> only if percent is changed from /pdf-upload route
-        last_percent = upload.percent
-
-      # stop streaming -> done, failed
-      if upload.status in {UploadStatus.DONE, UploadStatus.FAILED}:
-        print("stop streaming --")
-        break
-
-      await asyncio.sleep(1) # wait 1 seconds
-
-  # run generator and yield each loop data to client
-  return StreamingResponse(event_generator(), media_type='text/event-stream')
   
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorGridFSBucket
 
@@ -450,7 +378,6 @@ async def upload_pdf(
   )
 
   return dict(message="✅ pdf upload success")
-
 
 
 # route /pdfs/my-pdfs
