@@ -1,4 +1,4 @@
-from fastapi import Request, HTTPException, status
+from fastapi import Request, HTTPException, status, WebSocket
 from jose import JWTError
 
 # my imports
@@ -38,6 +38,31 @@ async def auth_guard(request: Request) -> User:
       status_code=status.HTTP_401_UNAUTHORIZED,
       detail="invalid or expired token"
     )
+
+async def websocket_auth_guard(websocket: WebSocket):
+  token = websocket.cookies.get("access_token")
+
+  if not token:
+    await websocket.close(code=1008)
+    return
+  
+  try:
+    payload = verify_jwt(token=token)
+
+    user_id = payload.get("user_id")
+
+    user = await User.get(document_id=user_id)
+
+    if not user or not user.is_active:
+      await websocket.close(code=1008)
+      return
+
+    # return user -> into our route
+    return user
+  except Exception:
+    await websocket.close(code=1008)
+    return
+
 
 #=========guest guard
 

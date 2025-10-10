@@ -1,6 +1,6 @@
 
 
-from fastapi import APIRouter, HTTPException, Depends, Response, Request, Body, Path, UploadFile, File, status, Query, Form
+from fastapi import APIRouter, HTTPException, Depends, Response, Request, Body, Path, UploadFile, File, status, Query, Form, WebSocket, WebSocketDisconnect
 from typing import Any
 import random
 import asyncio
@@ -521,87 +521,64 @@ async def download_pdf(
 # SSE routes
 #==============
 from src.events import event_manager
-from typing import AsyncGenerator
-from src.services import format_sse
+from src.dependencies import websocket_auth_guard
+#from typing import AsyncGenerator
+#from src.services import format_sse
 
-@sse_router.get("/sse")
+@sse_router.websocket("/ws")
 async def sse_endpoint(
-  request: Request,
-  auth_user: Any = Depends(auth_guard),
+  # request: Request,
+  websocket: WebSocket,
+  auth_user: Any = Depends(websocket_auth_guard),
 ):
   """
-  single SSE connection for the authenticated user.
+  single websocket connection per auth user
   """
 
   user_id = str(auth_user.id)
 
+  # accept a socket connection
+  await websocket.accept()
+  print(f"{user_id} - connected via socket")
+
   # subscribe user client ->and return the queue
   queue = await event_manager.subscribe(user_id=user_id)
 
-  # incremental message id
-  msg_id = 0
+  try:
+   
+    while True:
 
-  # generator -> response through sse connection -> we need a generator
-  async def event_generator() -> AsyncGenerator[str, None]:
-    nonlocal msg_id
+      try:
+        # either send event message or send a heartbeat on timeout
+        text = await asyncio.wait_for(
+          queue.get(), # await a message inside our queue
+          timeout=15,
+        ) 
 
-    try:
-      # send a welcome message on client connect
-      welcome = dict(message="connected", user_id=user_id)
+        #get data out of our event
+        payload = json.loads(text)
 
-      # yield this message to our clients
-      yield format_sse(
-        message_id=msg_id, 
-        event_name="connected",
-        data=json.dumps(welcome)
-      )
-      # increment message id
-      msg_id += 1
+        print("data out of our event: 🍹", payload)
 
-      # send a heartbeat every 15 second to client
-      HEARTBEAT = 15
+        event_name = payload.get("event")
+        data = json.dumps(payload.get('data'))
 
-      while True:
-        try:
-          # either send event message or send a heartbeat on timeout
-          text = await asyncio.wait_for(
-            queue.get(), # await a message inside our queue
-            timeout=HEARTBEAT,
-          ) 
+        # socket , send json
+        await websocket.send_json(dict(
+          event= event_name,
+          data= data,
+        ))
 
-          #get data out of our event
-          payload = json.loads(text)
+      except asyncio.TimeoutError:
+        # send a heartbeat -> on timeout
+        await websocket.send_json(dict(event="ping"))
 
-          print("data out of our event: 🍹", payload)
+  except WebSocketDisconnect:
+    print(f"🛑 {user_id} disconnected") # on shut down -> generator process get's cancelled
 
-          event_name = payload.get("event")
-          data = json.dumps(payload.get('data'))
-
-          # send a message to our client
-          yield format_sse(
-            message_id=msg_id,
-            event_name=event_name,
-            data=data
-          )
-
-          msg_id += 1
-
-        except asyncio.TimeoutError:
-          # send a heartbeat -> on timeout
-          yield ":ping\n\n"
-
-        # detect client disconnect
-        if await request.is_disconnected():
-          break
-
-    finally:
-      # connection is closed -> so unsub the user
-      await event_manager.unsubscribe(user_id=user_id, q=queue)
-    
-  return StreamingResponse(
-    event_generator(), 
-    media_type="text/event-stream"
-  )
+  finally:
+    # connection is closed -> so unsub the user
+    await event_manager.unsubscribe(user_id=user_id, q=queue)
 
 from datetime import datetime, timezone
 

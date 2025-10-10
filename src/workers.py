@@ -123,6 +123,8 @@ async def process_task(task: Task, db: AsyncIOMotorDatabase[Any]):
 
 # async worker loop
 
+stop_event = asyncio.Event()
+
 async def task_worker_loop(
     db: AsyncIOMotorDatabase[Any],# instance of mongodb
     interval: int = 5,
@@ -130,7 +132,8 @@ async def task_worker_loop(
   """ main worker loop to fetch and process incomplete tasks """
   print("🍎🍎 start worker loop.")
 
-  while True:
+  # we use this to stop event loop on server shutdown
+  while not stop_event.is_set():
     print("---async worker loop---")
     try:
 
@@ -150,3 +153,8 @@ async def task_worker_loop(
       
     
     await asyncio.sleep(delay=interval)
+
+# stop loop
+def stop_worker():
+  """ tell worker loop to stop """
+  stop_event.set()

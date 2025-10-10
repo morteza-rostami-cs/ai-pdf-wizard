@@ -2,7 +2,7 @@ import { fetchAuthUser, showIfAuth, showIfGuest } from "./auth/auth.js";
 import { loadHeader } from "./header.js";
 import { authGuard } from "./auth/authGuard.js";
 import { guestGuard } from "./auth/guestGuard.js";
-import { connectSse } from "./events.js";
+import { initSocket } from "./sockets.js";
 
 // load auth user from backend, set promise on window
 document.addEventListener("DOMContentLoaded", () => {
@@ -15,7 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.currentUserPromise.then((data) => {
     const authenticated = data.authenticated;
     // start sse connection only for auth users
-    if (authenticated) connectSse();
+    // if (authenticated) connectSse();
+    if (authenticated) initSocket();
   });
 
   // load header on every page

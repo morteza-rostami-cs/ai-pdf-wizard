@@ -11,15 +11,21 @@ from fastapi.middleware.cors import CORSMiddleware
 # my imports ------------------------
 from src.config import settings
 from src.models import User, Task, Otp, Upload, PDF, PdfPage
-from src.workers import task_worker_loop
+from src.workers import task_worker_loop, stop_worker
 
 # my routes --------------------------
 from src.routes import user_router, pdf_router, sse_router
+
+# stop event for SSE generator loop
+# stop_event = asyncio.Event()
 
 # lifespan -> runs on server start 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
   """ this runs on app startup """
+  print("🚀 Server starting...")
+  # stop_event.clear()
+  # set our stop event in global state
 
   client: AsyncIOMotorClient[Any] = motor.motor_asyncio.AsyncIOMotorClient(
     host=settings.MONGO_URI,
@@ -52,19 +58,24 @@ async def lifespan(app: FastAPI):
   if db == None:
     raise Exception("mongo instance is None.")
 
-  asyncio.create_task(
+  worker_task = asyncio.create_task(
     task_worker_loop(
       db=db,
       interval=5  # 5 seconds
     )
   )
   
-
   yield # everything after this , runs on shutdown
 
+  print("🛑 Server shutting down...")
   # close mongodb
   client.close()
   print("✅ MongoDB connection closed")
+
+  # close worker loop
+  stop_worker()
+  print("💝 stop worker loop")
+  worker_task.cancel() 
 
 # fast api app
 app = FastAPI(
@@ -110,9 +121,9 @@ async def index() -> Any:
 # routes
 # --------------------------
 
+app.include_router(router=sse_router, prefix='/api')
 app.include_router(router=user_router, prefix='/api')
 app.include_router(router=pdf_router, prefix='/api')
-app.include_router(router=sse_router, prefix='/api')
 
 from fastapi.staticfiles import StaticFiles
 # has to come after other /api routes
