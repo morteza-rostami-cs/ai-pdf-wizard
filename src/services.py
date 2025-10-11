@@ -343,3 +343,25 @@ def format_sse(
   event_str += '\n'
 
   return event_str
+
+from fastapi import UploadFile
+import hashlib
+
+# file hash
+async def compute_file_hash(file: UploadFile) -> str:
+  """ compute a hash of the file for duplicate detection """
+
+  hasher = hashlib.sha256()
+  chunk_size = 1024 * 1024 # 1 mb
+
+  while True:
+    chunk = await file.read(chunk_size)
+
+    if not chunk:
+      break
+      
+    hasher.update(chunk)
+  
+  await file.seek(0) # resetting file pointer
+  
+  return hasher.hexdigest()

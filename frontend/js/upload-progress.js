@@ -1,6 +1,7 @@
 /**
  * open a SSE connection for fetching upload progress
  * */
+/*
 export function openSseProgress(upload_id, onUpdate) {
   // SSE -> localhost:8000 , localhost:5500
   const source = new EventSource(
@@ -32,7 +33,7 @@ export function openSseProgress(upload_id, onUpdate) {
     source.close();
   };
 }
-
+*/
 /**
  * takes payload and update progress-bar ui
  * */

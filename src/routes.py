@@ -249,6 +249,8 @@ async def create_user(
 #==============
   
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorGridFSBucket
+from src.services import compute_file_hash
+from src.dtos import UploadEvents, PDFStatus
 
 # upload pdf route
 @pdf_router.post("/upload-pdf")# 
@@ -257,7 +259,7 @@ async def upload_pdf(
   request: Request,
   # data: Any = Body(...),
   file: UploadFile = File(...),
-  upload_id: str = Form(...),
+  #upload_id: str = Form(...),
   file_size: int = Form(...),
   auth_user: User = Depends(dependency=auth_guard),
 ):
@@ -272,34 +274,40 @@ async def upload_pdf(
 
   # db instance
   db: AsyncIOMotorDatabase[Any] = request.app.state.mongo_db
-
   # grid bucket
   bucket = AsyncIOMotorGridFSBucket(database=db)
 
-  # upload progress record
-  upload_doc = await Upload.find_one(Upload.upload_id == upload_id)
+  # hash our file
+  file_hash = await compute_file_hash(file=file)
 
-  if not upload_doc:
-    upload_doc = Upload(
-      upload_id=upload_id,
-      percent=0,
+  # existing upload 
+  existing_upload = await Upload.find_one(
+    dict(
+      user=DBRef(collection='users', id=auth_user.id),
+      file_hash=file_hash,
       status=UploadStatus.UPLOADING,
-      user=auth_user # type: ignore
     )
-    await upload_doc.insert()
+  )
 
-  else: # no Upload doc
-    # in start of our upload -> reset everything
-    upload_doc.percent = 0
-    upload_doc.status = UploadStatus.UPLOADING
-    upload_doc.file_id = None # gridfs_id
-
-    await upload_doc.save()
+  if existing_upload:
+    raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="upload already in progress for this file")
+  
+  # init upload if does not exists
+  upload_doc = Upload(
+    user=auth_user, # type: ignore
+    filename=file.filename,
+    file_size=file.spool_max_size if hasattr(file, "spool_max_size") else file_size, #type: ignore
+    file_hash=file_hash,
+    status=UploadStatus.UPLOADING,
+    percent=0,
+  )
+  await upload_doc.insert()
 
   # background task: upload
   async def upload_chunks(
       file: UploadFile,
-      upload_id: str ,
+      # upload_id: str ,
+      upload_record: Upload,
       user: User,
   ):
     try:
@@ -323,14 +331,21 @@ async def upload_pdf(
         total_bytes += len(chunk) # number of bytes
 
         # calculate upload.percent
-        percent = math.floor((total_bytes / file_size) * 100)
+        percent = math.floor((total_bytes / upload_record.file_size) * 100)
 
         # update upload doc
-        upload_doc = await Upload.find_one(Upload.upload_id == upload_id)
+        #upload_record = await Upload.find_one(Upload.upload_id == upload_id)
         # increase upload progress
-        upload_doc.percent = min(percent, 100) # type: ignore
+        upload_record.percent = min(percent, 100) # type: ignore
 
-        await upload_doc.save() # type: ignore
+        await upload_record.save() # type: ignore
+
+        # send an event to frontend
+        await event_manager.publish(
+          user_id=str(user.id),
+          event=UploadEvents.UPLOAD_PROGRESS.value,
+          data=upload_record.model_dump(mode="json"), # type: ignore
+        )
 
         # some delay
         await asyncio.sleep(1)
@@ -339,41 +354,57 @@ async def upload_pdf(
       await grid_in.close()
 
       # mark upload as done
-      upload_doc: Any = await Upload.find_one(Upload.upload_id == upload_id)
-      upload_doc.status = UploadStatus.DONE
-      upload_doc.file_id =str(grid_in._id)
-      upload_doc.percent = 100
-      await upload_doc.save()
+      #upload_doc: Any = await Upload.find_one(Upload.upload_id == upload_id)
+      upload_record.status = UploadStatus.DONE
+      upload_record.file_id =str(grid_in._id)
+      upload_record.percent = 100
+      await upload_record.save()
 
       # create a PDF doc -> metadata, text, html
       pdf_doc = PDF(
         filename=file.filename, # type: ignore
         gridfs_id=str(grid_in._id),
-        upload_id=upload_id,
-        user=user # type: ignore
+        upload_id= str(upload_record.id),
+        user=user, # type: ignore
+        status=PDFStatus.UPLOADED,
       )
       
       await pdf_doc.insert()
 
-      # pdf upload success -> init pdf extraction process (task)
-      await fire_task(
-        task_type=TaskTypes.PROCESSING,
-        payload=dict(pdf_id=pdf_doc.id, user_id=auth_user.id)
+      # event: upload complete
+      await event_manager.publish(
+        user_id=str(user.id),
+        event=UploadEvents.UPLOAD_DONE.value,
+        data=upload_record.model_dump(mode="json"), # type:ignore
       )
+
+      # pdf upload success -> init pdf extraction process (task)
+      # await fire_task(
+      #   task_type=TaskTypes.PROCESSING,
+      #   payload=dict(pdf_id=pdf_doc.id, user_id=auth_user.id)
+      # )
 
     except Exception as e:
       print(str(e))
       # pdf upload failed
-      upload_doc = await Upload.find_one(Upload.upload_id == upload_id)
-      upload_doc.status = UploadStatus.FAILED # upload failed
-      upload_doc.error = str(e)
-      await upload_doc.save()
+      #upload_record = await Upload.find_one(Upload.upload_id == upload_id)
+      upload_record.status = UploadStatus.FAILED # upload failed
+      upload_record.error = str(e)
+      await upload_record.save()
+
+      # event: upload failed
+      await event_manager.publish(
+        user_id=str(user.id),
+        event=UploadEvents.UPLOAD_FAILED,
+        data=upload_doc.model_dump(mode="json")
+      )
+
 
   # background task
   background_tasks.add_task(
     upload_chunks, # async process /function
     file,
-    upload_id,
+    upload_record=upload_doc,
     user=auth_user
   )
 

@@ -1,5 +1,5 @@
 import { api } from "../api.js";
-import { openSseProgress, updateProgressBar } from "../upload-progress.js";
+//import { openSseProgress, updateProgressBar } from "../upload-progress.js";
 import { fetchPDFs } from "../pdfs.js";
 
 export function initUploadPage() {
@@ -10,10 +10,10 @@ export function initUploadPage() {
     console.log("start pdf upload");
     event.preventDefault();
 
-    const upload_id = crypto.randomUUID();
+    //const upload_id = crypto.randomUUID();
 
     // open a sse connection -> to get upload progress
-    openSseProgress(upload_id, updateProgressBar);
+    //openSseProgress(upload_id, updateProgressBar);
 
     // file input
     const fileEl = document.getElementById("pdf-input");
@@ -35,7 +35,7 @@ export function initUploadPage() {
     const formData = new FormData();
 
     formData.append("file", file);
-    formData.append("upload_id", upload_id);
+    //formData.append("upload_id", upload_id);
     formData.append("file_size", file.size);
 
     // loading state

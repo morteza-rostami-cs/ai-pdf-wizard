@@ -28,3 +28,8 @@ class PDFStatus(str, Enum):
   EMBEDDING = 'embedding' # vector db
   READY = 'ready'
   FAILED = 'failed'
+
+class UploadEvents(str, Enum):
+  UPLOAD_PROGRESS = 'upload_progress'
+  UPLOAD_DONE = 'upload_done'
+  UPLOAD_FAILED = 'upload_failed'
