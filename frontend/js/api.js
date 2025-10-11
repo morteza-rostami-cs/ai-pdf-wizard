@@ -91,4 +91,9 @@ export const api = {
 
   downloadPDF: (pdf_id) =>
     request(`/pdfs/download/${pdf_id}`, { method: "GET" }),
+
+  deletePDF: (pdf_id) =>
+    request(`/pdfs/${pdf_id}`, {
+      method: "DELETE",
+    }),
 };

@@ -126,6 +126,14 @@ async function fetchPDFs() {
             download
           </button>
         </td>
+
+        <td class="py-2 text-gray-800">
+          <button 
+          class="deleteBtn bg-red-300 hover:bg-red-400 transition p-2 rounded-md"
+          >
+            delete🗑
+          </button>
+        </td>
       `;
 
       // render each row into table body
@@ -135,6 +143,12 @@ async function fetchPDFs() {
       const btn = row.querySelector(".downloadBtn");
       btn.addEventListener("click", function () {
         handleDownload(pdf._id, this);
+      });
+
+      // set eventListener on delete button
+      const deleteBtn = row.querySelector(".deleteBtn");
+      deleteBtn.addEventListener("click", function () {
+        handleDelete(pdf._id, this);
       });
     });
   } catch (err) {
@@ -161,6 +175,30 @@ async function handleDownload(pdf_id, btn) {
     window.alert("something went wrong while downloading PDF");
   } finally {
     // reset button
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+// delete pdf
+async function handleDelete(pdf_id, btn) {
+  const originalText = btn.textContent;
+
+  if (!window.confirm("are you sure you want to delete this PDF?")) return;
+
+  try {
+    btn.textContent = "deleting..";
+    btn.disabled = true;
+
+    const data = await api.deletePDF(pdf_id);
+
+    // remove from table
+    const row = btn.closest("tr");
+    row.remove();
+  } catch (err) {
+    console.error("error deleting PDF", err);
+    window.alert("error deleting PDF");
+  } finally {
     btn.textContent = originalText;
     btn.disabled = false;
   }

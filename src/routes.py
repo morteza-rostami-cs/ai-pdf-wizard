@@ -18,12 +18,13 @@ from beanie import SortDirection
 import math
 
 # my imports
-from src.models import User, Otp, Upload, PDF
+from src.models import User, Otp, Upload, PDF, PdfPage
 from src.services import fire_task
 from src.dtos import TaskTypes, Dictor, UploadStatus
 from src.services import send_email, generate_jwt, verify_jwt, verify_token
 from src.config import settings
 from src.dependencies import auth_guard, guest_guard
+from src.langchain import delete_pdf_vectors
 
 # schemas
 from src.schemas import RegisterInput, LoginInput, ProfileResponse, UserCreate, MeResponse
@@ -474,6 +475,66 @@ async def download_pdf(
     # download failed
     print("GridFS download failed: ", str(e))
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="file not found")
+
+# delete
+@pdf_router.delete("/{pdf_id}")
+async def delete_pdf(
+  request: Request,
+  pdf_id: str = Path(...),
+  auth_user: User = Depends(auth_guard),
+  ): 
+  """ given a pdf_id -> remove everything related to PDF on our backend """
+
+  db: AsyncIOMotorDatabase[Any] = request.app.state.mongo_db
+  # grid bucket
+  bucket = AsyncIOMotorGridFSBucket(database=db)
+
+  if not ObjectId.is_valid(oid=pdf_id):
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid PDF ID")
+
+  pdf_doc = await PDF.get(document_id=pdf_id)
+
+  if not pdf_doc:
+    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="PDF not found")
+
+  print(f"deleting PDF {pdf_id}")
+
+  # delete all PdfPage docs
+  # dict(pdf=DBRef(collection="PDF", id=ObjectId(oid=pdf_id)))
+  # result: Any = await PdfPage.find_many(PdfPage.pdf == ObjectId(pdf_id)).delete_many()
+
+  # make the DBRef object to match
+  pdf_ref = DBRef(collection="pdfs", id=ObjectId(pdf_id))
+
+  # delete all pages linked to this PDF
+  result = await PdfPage.find({'pdf': pdf_ref}).delete()
+
+  print(f"deleted {result.deleted_count} pages") # type: ignore
+
+  # delete the file from GridFS
+  file_id: Any = pdf_doc.gridfs_id # type: ignore
+
+  if file_id:
+    try:
+      file_oid = ObjectId(file_id) # type: ignore
+      await bucket.delete(file_id=file_oid)
+      print(f"deleted file from gridFS: {file_oid}")
+    except Exception as e:
+      print(f"gridFS delete file error: {str(e)}")
+      raise HTTPException(status_code=500, detail=f"Failed to delete GridFS file: {str(e)}")
+
+  # delete all vectors in chroma db
+  try:
+    delete_pdf_vectors(collection_name='pdf_chunks', pdf_id=pdf_id)
+  except Exception as e:
+    print(f"failed to delete vectors: {str(e)}")
+
+  # delete PDF doc
+  #await PDF.delete(dict(id=pdf_id))
+  await pdf_doc.delete()
+  print(f"deleted PDF doc: {pdf_id}")
+
+  return dict(status="ok", pdf_id=pdf_id)
 
 #==============
 # SSE routes
