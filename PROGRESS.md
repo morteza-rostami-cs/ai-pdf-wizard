@@ -394,3 +394,7 @@ The system now supports **real-time event delivery** across the stack — enabli
 This marks the foundation for live PDF status streaming and other interactive features.
 
 ---
+
+### 🎥 Video
+
+- [Issue #3 playlist](https://www.youtube.com/playlist?list=PLcccwZD44KFQ7CQG5pBnGuLUsS2OsvjJw)

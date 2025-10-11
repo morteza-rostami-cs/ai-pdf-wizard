@@ -40,11 +40,13 @@ A FastAPI + LangChain app for PDFs: upload, summarize, and chat with your docume
 
 - [issue #3 video](https://www.youtube.com/playlist?list=PLcccwZD44KFT-CiYP_qLok74DWB_H_En9)
 
-- [ ] **PDF Processing Pipeline**
+- [x] **PDF Processing Pipeline**
 
   - Extract text + per-page HTML from PDFs
   - Store text + HTML + metadata in MongoDB
   - Background task queue for extraction, embedding, and summarization
+
+- [issue #5 video](https://www.youtube.com/playlist?list=PLcccwZD44KFQ7CQG5pBnGuLUsS2OsvjJw)
 
 - [ ] **Vectorization & Embeddings**
 
