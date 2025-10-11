@@ -26,6 +26,7 @@
     <!-- site header -->
     <div id="header"></div>
 
+    <!-- upload pdf form -->
     <div class="mx-auto mt-10 bg-gray-100 max-w-[500px] p-4">
       <h1>Upload a PDF</h1>
       <form id="pdf-form" enctype="multipart/form-data">
@@ -53,6 +54,14 @@
       </div>
 
       <p id="upload-status" class="text-sm mt-2 text-gray-600">waiting...</p>
+    </div>
+
+    <!-- upload progress -->
+    <div
+      id="upload-list"
+      class="mx-auto mt-10 bg-gray-100 max-w-[500px] p-4 flex flex-col gap-4"
+    >
+      uploads
     </div>
 
     <!-- show a table of all user's pdfs -->

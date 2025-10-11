@@ -1,8 +1,14 @@
 import { api } from "../api.js";
 //import { openSseProgress, updateProgressBar } from "../upload-progress.js";
 import { fetchPDFs } from "../pdfs.js";
+// import { getDate } from "../utils.js";
+// import { initUploadProgress } from "../upload-progress.js";
+import { initUploadProgress } from "../upload.js";
 
 export function initUploadPage() {
+  // setup upload event system
+  initUploadProgress();
+
   // pdf form
   const form = document.getElementById("pdf-form");
 
