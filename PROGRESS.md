@@ -398,3 +398,66 @@ This marks the foundation for live PDF status streaming and other interactive fe
 ### 🎥 Video
 
 - [Issue #3 playlist](https://www.youtube.com/playlist?list=PLcccwZD44KFQ7CQG5pBnGuLUsS2OsvjJw)
+
+---
+
+## **Day 13 — Live Upload & PDF Status Updates, Full PDF Deletion**
+
+**🎯 Goals:**
+
+- Provide real-time feedback for PDF uploads and processing.
+- Enable full PDF deletion including database entries, GridFS files, and vector data.
+
+**✅ Tasks Completed:**
+
+### 1. **Live PDF Upload Flow**
+
+- Refactored PDF upload to be fully managed by the backend.
+- Server generates unique upload IDs; removed client-generated IDs.
+- Background upload streams file to GridFS with progress tracking.
+- WebSocket-based event system (`event_manager`) emits live updates: progress, completion, failure.
+- Backend automatically creates a new PDF document upon successful upload.
+- Prevented duplicate uploads while a file is in progress.
+- Improved error handling and ensured consistent status updates.
+
+### 2. **Frontend Upload UI**
+
+- Added centralized WebSocket connection for authenticated users.
+- Live upload progress displayed via dynamic progress bars.
+- Status indicators for `uploading`, `done`, `failed`.
+- Each upload entry is linked via `data-upload-id` for easy UI updates.
+- New PDFs automatically appear in the list once upload completes.
+
+### 3. **Live PDF Status Updates**
+
+- Backend emits events for PDF status transitions:
+  `uploaded → processing → embedding → ready/failed`.
+- Frontend listens for `pdf_status_update` events and updates PDF badges in real-time.
+- Added `data-pdf-id` attributes for smooth DOM updates.
+- Achieved real-time sync between backend processing and frontend display.
+
+### 4. **Full PDF Deletion**
+
+- **Backend:**
+
+  - DELETE endpoint removes PDF from MongoDB.
+  - Deletes all associated `PdfPage` documents.
+  - Removes file from GridFS.
+  - Deletes related vectors in Chroma vector DB.
+
+- **Frontend:**
+
+  - Added delete button with loading state.
+  - UI updates automatically on successful deletion.
+  - Shows success messages to users.
+
+**🧠 Outcome:**
+Users now enjoy a fully real-time experience: uploads and PDF processing are live-tracked via WebSocket events, and PDFs can be deleted completely from backend storage and vector databases.
+
+**🔗 Related Issues & Commits:**
+
+- Issue #7 (PDF Deletion)
+- Issue #8 (Live PDF Status Updates)
+- Issue #9 (WebSocket Event System)
+
+---
