@@ -33,3 +33,6 @@ class UploadEvents(str, Enum):
   UPLOAD_PROGRESS = 'upload_progress'
   UPLOAD_DONE = 'upload_done'
   UPLOAD_FAILED = 'upload_failed'
+
+class PdfEvents(str, Enum):
+  PDF_STATUS_UPDATE = 'pdf_status_update'

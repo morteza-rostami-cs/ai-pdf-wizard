@@ -8,7 +8,8 @@ from bson import ObjectId
 
 # my imports 
 from src.dtos import Dictor
-from src.dtos import TaskTypes, TaskStatus
+from src.dtos import TaskTypes, TaskStatus, PdfEvents
+from src.events import event_manager
 
 #-----------------------
 # User model
@@ -192,11 +193,19 @@ class PDF(Document):
   async def set_status(
       self,
       new_status: PDFStatus,
+      user_id: str,
       # message: 
   ) -> None:
     """ update the PDF status and timestamp """
     self.status = new_status
     self.updated_at = datetime.now(timezone.utc)
+
+    await event_manager.publish(
+      user_id=str(user_id),
+      event=PdfEvents.PDF_STATUS_UPDATE.value,
+      data=self.model_dump(mode="json"), # type: ignore
+    )
+
     await self.save()
 
 class PdfPage(Document):

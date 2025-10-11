@@ -379,10 +379,10 @@ async def upload_pdf(
       )
 
       # pdf upload success -> init pdf extraction process (task)
-      # await fire_task(
-      #   task_type=TaskTypes.PROCESSING,
-      #   payload=dict(pdf_id=pdf_doc.id, user_id=auth_user.id)
-      # )
+      await fire_task(
+        task_type=TaskTypes.PROCESSING,
+        payload=dict(pdf_id=pdf_doc.id, user_id=auth_user.id)
+      )
 
     except Exception as e:
       print(str(e))

@@ -1,5 +1,6 @@
 import { socketBus } from "./sockets.js";
-export const foo = () => {};
+import { fetchPDFs } from "./pdfService.js";
+
 export function initUploadProgress() {
   const uploadList = document.querySelector("#upload-list");
 
@@ -57,6 +58,9 @@ export function initUploadProgress() {
   function markUploadDone(data) {
     const uploadEl = document.querySelector(`[data-upload-id="${data.id}"]`);
     if (uploadEl) uploadEl.querySelector(".status").textContent = "✅ done";
+
+    // after upload done -> fetch all pdfs
+    fetchPDFs();
   }
 
   function markUploadFailed() {

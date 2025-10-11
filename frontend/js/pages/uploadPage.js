@@ -1,6 +1,8 @@
 import { api } from "../api.js";
 //import { openSseProgress, updateProgressBar } from "../upload-progress.js";
-import { fetchPDFs } from "../pdfs.js";
+import("../pdfService.js").then((module) => console.log(module));
+import { fetchPDFs, initPdfEvents } from "../pdfService.js";
+//import { initPdfEvents } from "../pdfs.js";
 // import { getDate } from "../utils.js";
 // import { initUploadProgress } from "../upload-progress.js";
 import { initUploadProgress } from "../upload.js";
@@ -8,6 +10,9 @@ import { initUploadProgress } from "../upload.js";
 export function initUploadPage() {
   // setup upload event system
   initUploadProgress();
+
+  // setup pdf_status_update
+  initPdfEvents();
 
   // pdf form
   const form = document.getElementById("pdf-form");

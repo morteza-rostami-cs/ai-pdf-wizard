@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
       break;
 
     case "upload":
-      import("./pages/pdf-upload.js").then((m) => m.initUploadPage());
+      import("./pages/uploadPage.js").then((m) => m.initUploadPage());
       break;
     case "index":
       import("./pages/index.js").then((m) => m.initIndexPage());

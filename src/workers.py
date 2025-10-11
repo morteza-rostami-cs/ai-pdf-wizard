@@ -56,13 +56,14 @@ async def process_text_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
     await task.mark_failed(error_msg=str(e))
 
     # PDF status
-    await pdf_doc.set_status(new_status=PDFStatus.FAILED)
+    await pdf_doc.set_status(new_status=PDFStatus.FAILED, user_id=user_id)
 
 # embedding task handler
 async def handle_embedding_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> None:
   """ task handler: generate embeddings for extracted PDF text """
 
   pdf_id = task.payload.get("pdf_id")
+  user_id = task.payload.get("user_id")
 
   if not pdf_id:
     raise ValueError("missing pdf_id")
@@ -80,7 +81,7 @@ async def handle_embedding_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> No
 
     await task.mark_done()
 
-    await pdf_doc.set_status(new_status=PDFStatus.READY) # PDF is ready to use
+    await pdf_doc.set_status(new_status=PDFStatus.READY, user_id=str(user_id)) # PDF is ready to use
 
     print(f"🍷 PDF is ready to use 🍷")
 
@@ -92,7 +93,7 @@ async def handle_embedding_task(task: Task, db: AsyncIOMotorDatabase[Any]) -> No
     await task.mark_failed(error_msg=str(e))
 
     # PDF status
-    await pdf_doc.set_status(new_status=PDFStatus.FAILED)
+    await pdf_doc.set_status(new_status=PDFStatus.FAILED, user_id=str(user_id))
 
 # process each task based on type
 

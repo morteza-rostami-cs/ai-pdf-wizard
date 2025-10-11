@@ -152,7 +152,7 @@ async def extract_text_service(
   """
 
   # set PDF status -> processing
-  await pdf_doc.set_status(new_status=PDFStatus.PROCESSING)
+  await pdf_doc.set_status(new_status=PDFStatus.PROCESSING, user_id=user_doc.id) # type: ignore
 
   # open file from GridFS
   bucket = AsyncIOMotorGridFSBucket(database=db)
@@ -220,6 +220,11 @@ async def extract_text_service(
       "updated_at": datetime.now(timezone.utc),
     }
   })
+
+  # set status again -> to trigger socket event
+  await pdf_doc.set_status(
+    new_status=PDFStatus.NEED_OCR if ocr_pages else PDFStatus.EMBEDDING, 
+    user_id=user_doc.id)
   
   print(f"✅ text extraction service success.")
   # return
