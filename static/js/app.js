@@ -3,6 +3,9 @@ import HomePage from "./pages/HomePage.js";
 import RegisterPage from "./pages/RegisterPage.js";
 import LoginPage from "./pages/LoginPage.js";
 import ProfilePage from "./pages/ProfilePage.js";
+// global user
+import { userStore } from "./stores/userStore.js";
+import { apiClient } from "./utils/api.js";
 
 const { createApp } = Vue;
 const { createRouter, createWebHashHistory } = VueRouter;
@@ -10,15 +13,42 @@ const { createRouter, createWebHashHistory } = VueRouter;
 //define routes
 const routes = [
   { path: "/", component: HomePage },
-  { path: "/register", component: RegisterPage },
-  { path: "/login", component: LoginPage },
-  { path: "/profile", component: ProfilePage },
+  { path: "/register", component: RegisterPage, meta: { guestOnly: true } },
+  { path: "/login", component: LoginPage, meta: { guestOnly: true } },
+  { path: "/profile", component: ProfilePage, meta: { requiresAuth: true } },
 ];
 
 // create router
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
+});
+
+// route guard to protected pages
+router.beforeEach(async (to, from, next) => {
+  // on every navigation
+  if (!userStore.user && !userStore.loading) {
+    // start loading
+    userStore.loading = true;
+
+    try {
+      const data = await apiClient("/users/me", "POST");
+      userStore.user = data.authenticated ? data.user : null;
+    } catch {
+      userStore.user = null;
+    } finally {
+      userStore.loading = false;
+    }
+  }
+
+  // if auth-only
+  if (to.meta.requiresAuth && !userStore.user) return next("/login");
+
+  // guest-only
+  if (to.meta.guestOnly && userStore.user) return next("/profile");
+
+  // otherwise
+  next();
 });
 
 // main app
@@ -32,5 +62,4 @@ const App = {
   `,
 };
 
-// mount our app
 createApp(App).use(router).mount("#app");
