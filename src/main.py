@@ -127,7 +127,7 @@ app.include_router(router=pdf_router, prefix='/api')
 
 from fastapi.staticfiles import StaticFiles
 # has to come after other /api routes
-app.mount("/", StaticFiles(directory='frontend', html=True), name='frontend')
+app.mount("/", StaticFiles(directory='static', html=True), name='static')
 
 # run fastapi server
 if __name__ == "__main__":
