@@ -20,11 +20,11 @@ beanie
 python-jose[cryptography] 
 passlib[bcrypt] 
 python-multipart
-pydantic[email]
+#pydantic[email]
 # sending email
 email-validator
 aiosmtplib
 #sentence-transformers
 pymupdf 
-pydantic[email]
+#pydantic[email]
 fastapi-utils
