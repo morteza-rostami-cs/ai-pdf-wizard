@@ -24,25 +24,37 @@ const router = createRouter({
   routes,
 });
 
+// fetch auth_user
+let pendingFetch = null;
+
+export async function fetchAuthUser() {
+  // if a fetch is already in progress, wait for it
+  if (pendingFetch) return pendingFetch;
+
+  pendingFetch = (async () => {
+    userStore.loading = true;
+    try {
+      const data = await apiClient("/users/me", "POST");
+      userStore.user = data?.authenticated ? data.user : null;
+    } catch (err) {
+      userStore.user = null;
+    } finally {
+      userStore.loading = false;
+      pendingFetch = null;
+    }
+    return userStore.user;
+  })();
+
+  return pendingFetch;
+}
+
 // route guard to protected pages
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   console.log("redirecting to route, ", to);
-  if (userStore.loading) {
-    // request to /users/me is pending
-    const stop = setInterval(() => {
-      if (!userStore.loading) {
-        clearInterval(stop);
-        handleGuards(to, next);
-      }
-    }, 50);
-  } else {
-    // request to /me is done -> whether we have the user or not
-    handleGuards(to, next);
-  }
-});
-
-function handleGuards(to, next) {
+  // fetch auth user on each redirect
+  await fetchAuthUser();
+  console.log(userStore); // line 54
   // if auth-only
   if (to.meta.requiresAuth && !userStore.user) return next("/login");
 
@@ -51,7 +63,7 @@ function handleGuards(to, next) {
 
   // otherwise
   next();
-}
+});
 
 // main app
 const App = {
@@ -61,22 +73,8 @@ const App = {
     // onMounted -> runs after Header render
     onBeforeMount(async () => {
       console.log("start App component");
-      // if user not loaded
-      if (!userStore.user && !userStore.loading) {
-        userStore.loading = true;
-        try {
-          // fetch auth user
-          const data = await apiClient("/users/me", "POST");
-          userStore.user = data?.authenticated ? data.user : null;
-
-          console.log(userStore.user);
-        } catch (err) {
-          console.error("failed to fetch /me ", err);
-          userStore.user = null;
-        } finally {
-          userStore.loading = false;
-        }
-      }
+      await fetchAuthUser();
+      console.log("app mount \n", userStore);
     });
   },
 

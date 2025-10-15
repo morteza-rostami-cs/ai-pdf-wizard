@@ -35,12 +35,15 @@ export default defineComponent({
         <RouterLink to="/" class="hover:text-yellow-300">
           Home
         </RouterLink>
-        <RouterLink v-if="!isAuth" to="/register" class="hover:text-yellow-300">
-          register
-        </RouterLink>
-        <RouterLink v-if="!isAuth" to="/login" class="hover:text-yellow-300">
-          login
-        </RouterLink>
+        <template v-if="!userStore.loading && !userStore.user">
+
+          <RouterLink  to="/register" class="hover:text-yellow-300">
+            register
+          </RouterLink>
+          <RouterLink  to="/login" class="hover:text-yellow-300">
+            login
+          </RouterLink>
+        </template>
 
         <RouterLink v-if="isAuth" to="/profile" class="hover:text-yellow-300">
           profile
