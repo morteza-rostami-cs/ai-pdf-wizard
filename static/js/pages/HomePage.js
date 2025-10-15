@@ -1,7 +1,11 @@
 const { defineComponent } = Vue;
+import { userStore } from "../stores/userStore.js";
 
 export default defineComponent({
   name: "HomePage",
+  setup: () => {
+    return { user: userStore.user };
+  },
   template: `
     <div class="text-center">
       <h1 class="text-3xl font-bold mb-3">

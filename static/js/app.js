@@ -7,7 +7,7 @@ import ProfilePage from "./pages/ProfilePage.js";
 import { userStore } from "./stores/userStore.js";
 import { apiClient } from "./utils/api.js";
 
-const { createApp } = Vue;
+const { createApp, onMounted, onBeforeMount } = Vue;
 const { createRouter, createWebHashHistory } = VueRouter;
 
 //define routes
@@ -25,22 +25,24 @@ const router = createRouter({
 });
 
 // route guard to protected pages
-router.beforeEach(async (to, from, next) => {
-  // on every navigation
-  if (!userStore.user && !userStore.loading) {
-    // start loading
-    userStore.loading = true;
 
-    try {
-      const data = await apiClient("/users/me", "POST");
-      userStore.user = data.authenticated ? data.user : null;
-    } catch {
-      userStore.user = null;
-    } finally {
-      userStore.loading = false;
-    }
+router.beforeEach((to, from, next) => {
+  console.log("redirecting to route, ", to);
+  if (userStore.loading) {
+    // request to /users/me is pending
+    const stop = setInterval(() => {
+      if (!userStore.loading) {
+        clearInterval(stop);
+        handleGuards(to, next);
+      }
+    }, 50);
+  } else {
+    // request to /me is done -> whether we have the user or not
+    handleGuards(to, next);
   }
+});
 
+function handleGuards(to, next) {
   // if auth-only
   if (to.meta.requiresAuth && !userStore.user) return next("/login");
 
@@ -49,11 +51,35 @@ router.beforeEach(async (to, from, next) => {
 
   // otherwise
   next();
-});
+}
 
 // main app
 const App = {
   components: { Header },
+
+  setup() {
+    // onMounted -> runs after Header render
+    onBeforeMount(async () => {
+      console.log("start App component");
+      // if user not loaded
+      if (!userStore.user && !userStore.loading) {
+        userStore.loading = true;
+        try {
+          // fetch auth user
+          const data = await apiClient("/users/me", "POST");
+          userStore.user = data?.authenticated ? data.user : null;
+
+          console.log(userStore.user);
+        } catch (err) {
+          console.error("failed to fetch /me ", err);
+          userStore.user = null;
+        } finally {
+          userStore.loading = false;
+        }
+      }
+    });
+  },
+
   template: `
     <Header/>
     <div class="p-4">
