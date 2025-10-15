@@ -51,10 +51,9 @@ export async function fetchAuthUser() {
 // route guard to protected pages
 
 router.beforeEach(async (to, from, next) => {
-  console.log("redirecting to route, ", to);
   // fetch auth user on each redirect
   await fetchAuthUser();
-  console.log(userStore); // line 54
+
   // if auth-only
   if (to.meta.requiresAuth && !userStore.user) return next("/login");
 
@@ -72,9 +71,7 @@ const App = {
   setup() {
     // onMounted -> runs after Header render
     onBeforeMount(async () => {
-      console.log("start App component");
       await fetchAuthUser();
-      console.log("app mount \n", userStore);
     });
   },
 
