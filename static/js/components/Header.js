@@ -28,33 +28,53 @@ export default defineComponent({
 
     return { logout, userStore, loading };
   },
-  template: /*jsx*/ `
-    <nav class="bg-indigo-600 text-white p-4 flex justify-between">
-      <div class="font-bold text-lg">AI PDF Wizard</div>
+  template: /*html*/ `
+    <el-header height="60px" class="bg-indigo-600 text-white flex justify-between items-center px-6">
+  
+      <RouterLink to="/" class="text-xl font-bold text-white hover:text-yellow-300">
+        AI PDF Wizard
+      </RouterLink>
 
-      <div class="space-x-4">
-        
-        <RouterLink to="/" class="hover:text-yellow-300">
-          Home
-        </RouterLink>
+     
+      <div class="flex items-center space-x-2">
+       
         <GuestGuard>
-          <RouterLink  to="/register" class="hover:text-yellow-300">
-            register
+          <RouterLink to="/register">
+            <el-button text type="primary">Register</el-button>
           </RouterLink>
-          <RouterLink  to="/login" class="hover:text-yellow-300">
-            login
+          <RouterLink to="/login">
+            <el-button text type="primary">Login</el-button>
           </RouterLink>
         </GuestGuard>
-      
+
+
         <AuthGuard>
-          <RouterLink  to="/profile" class="hover:text-yellow-300">
-            profile
+          <RouterLink to="/upload-pdf">
+            <el-button text type="primary">Upload PDF</el-button>
           </RouterLink>
-        
-          <LogoutButton/>
-          
+
+          <el-dropdown trigger="click" @command="cmd => cmd === 'profile' ? router.push('/profile') : null">
+            <span class="el-dropdown-link cursor-pointer flex items-center space-x-2">
+              <el-avatar :size="28">{{ '' }}</el-avatar>
+              <span class="text-white">{{ 'profile' }}</span>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">
+                  <RouterLink to="/profile">
+                    <el-button text type="primary">
+                    profile
+                    </el-button>
+                  </RouterLink>
+                </el-dropdown-item>
+                <el-dropdown-item divided>
+                  <LogoutButton />
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </AuthGuard>
       </div>
-    </nav>
+    </el-header>
   `,
 });

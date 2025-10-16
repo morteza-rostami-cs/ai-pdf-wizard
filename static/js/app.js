@@ -3,6 +3,7 @@ import HomePage from "./pages/HomePage.js";
 import RegisterPage from "./pages/RegisterPage.js";
 import LoginPage from "./pages/LoginPage.js";
 import ProfilePage from "./pages/ProfilePage.js";
+import UploadPdfPage from "./pages/UploadPdfPage.js";
 // global user
 import { userStore } from "./stores/userStore.js";
 import { apiClient } from "./utils/api.js";
@@ -16,6 +17,11 @@ const routes = [
   { path: "/register", component: RegisterPage, meta: { guestOnly: true } },
   { path: "/login", component: LoginPage, meta: { guestOnly: true } },
   { path: "/profile", component: ProfilePage, meta: { requiresAuth: true } },
+  {
+    path: "/upload-pdf",
+    component: UploadPdfPage,
+    meta: { requiresAuth: true },
+  },
 ];
 
 // create router
@@ -84,9 +90,8 @@ const App = {
     );
   },
 
-  template: /*jsx*/ `
+  template: /*html*/ `
     <Header/>
-    
     
     <div class="p-4">
       <router-view></router-view>

@@ -1,7 +1,7 @@
 const { defineComponent, ref } = Vue;
 const { useRouter } = VueRouter;
-import { userStore } from "../stores/userStore.js";
 import { apiClient } from "../utils/api.js";
+import { userStore } from "../stores/userStore.js";
 
 export default defineComponent({
   name: "LogoutButton",
@@ -34,6 +34,7 @@ export default defineComponent({
       </el-button>
 
       <!-- Confirm Dialog -->
+      <teleport to="body">
       <el-dialog
         v-model="showConfirm"
         title="Confirm Logout"
@@ -45,6 +46,7 @@ export default defineComponent({
           <el-button type="primary" @click="logout">Yes</el-button>
         </template>
       </el-dialog>
+      </teleport>
     </div>
   `,
 });

@@ -11,7 +11,7 @@ export default defineComponent({
 
     return { userStore };
   },
-  template: /*jsx*/ `
+  template: /*html*/ `
     <div>
       {{userStore?.user?.email}}
     </div>
