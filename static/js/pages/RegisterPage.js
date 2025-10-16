@@ -79,38 +79,38 @@ export default defineComponent({
   },
 
   template: `
-    <form 
-    @submit.prevent="submitForm" 
-    class="max-w-sm mx-auto mt-12 p-6 bg-white border border-gray-200 rounded-lg shadow-md">
-      <h2 class="text-2xl font-bold mb-6 text-gray-900">
-      Register
+    <el-card class="max-w-md mx-auto mt-20 p-8 shadow-md">
+      <h2 class="text-2xl font-bold mb-6 text-center text-gray-900">
+        Register
       </h2>
 
-      <!-- Email -->
-      <div class="mb-5">
-        <label for="email" class="block mb-2 text-sm font-medium text-gray-900">Your email</label>
-        <input
-          type="email"
-          id="email"
-          v-model="form.email"
-          placeholder="name@example.com"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-          
-        />
-        <p v-if="errors.email" class="text-red-500 text-sm mt-1">
-          {{ errors.email }}
-        </p>
-      </div>
+      <el-form label-position="top" @submit.prevent class="flex flex-col gap-4">
+        <!-- Email -->
+        <el-form-item 
+          label="Email" 
+          :error="errors.email"
+        >
+          <el-input
+            v-model="form.email"
+            type="email"
+            placeholder="name@example.com"
+          />
+        </el-form-item>
 
-      <!-- Submit -->
-      <button
-        type="submit"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full px-5 py-2.5 text-center"
-        :disabled="loading"
-      >
-        <span v-if="loading">Sending...</span>
-        <span v-else>Register</span>
-      </button>
-    </form>
+        <!-- Submit -->
+        <el-form-item>
+          <el-button
+            type="primary"
+            :loading="loading"
+            :disabled="loading"
+            class="w-full"
+            @click="submitForm"
+          >
+            <template v-if="!loading">Register</template>
+            <template v-else>Sending...</template>
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
   `,
 });

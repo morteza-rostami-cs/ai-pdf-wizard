@@ -7,7 +7,7 @@ import ProfilePage from "./pages/ProfilePage.js";
 import { userStore } from "./stores/userStore.js";
 import { apiClient } from "./utils/api.js";
 
-const { createApp, onMounted, onBeforeMount } = Vue;
+const { createApp, onMounted, onBeforeMount, watch, toRaw } = Vue;
 const { createRouter, createWebHashHistory } = VueRouter;
 
 //define routes
@@ -73,14 +73,29 @@ const App = {
     onBeforeMount(async () => {
       await fetchAuthUser();
     });
+
+    // watch for userStore change
+    watch(
+      () => userStore.user,
+      (newVal, oldVal) => {
+        console.log("user changed: ", toRaw(newVal));
+      },
+      { immediate: true } // optional: run once on load
+    );
   },
 
-  template: `
+  template: /*jsx*/ `
     <Header/>
+    
+    
     <div class="p-4">
       <router-view></router-view>
     </div>
   `,
 };
 
-createApp(App).use(router).mount("#app");
+const app = createApp(App);
+app.use(router);
+app.use(ElementPlus);
+
+app.mount("#app");

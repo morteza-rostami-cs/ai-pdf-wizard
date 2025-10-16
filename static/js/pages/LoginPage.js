@@ -88,56 +88,58 @@ export default defineComponent({
     return { form, errors, loading, submitForm };
   },
 
-  template: `
-    <form 
-      @submit.prevent="submitForm" 
-      class="max-w-sm mx-auto mt-12 p-6 bg-white border border-gray-200 rounded-lg shadow-md">
-      
-      <h2 class="text-2xl font-bold mb-6 text-gray-900">Login</h2>
+  template: /*jsx*/ `
+    <el-card class="max-w-md mx-auto mt-20 p-8 shadow-md">
+      <h2 class="text-2xl font-bold mb-6 text-center text-gray-900">
+        Login
+      </h2>
 
-      <!-- Email -->
-      <div class="mb-5">
-        <label for="email" class="block mb-2 text-sm font-medium text-gray-900">Email</label>
-        <input
-          type="email"
-          id="email"
-          v-model="form.email"
-          placeholder="name@example.com"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-          focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-        />
-        <p v-if="errors.email" class="text-red-500 text-sm mt-1">
-          {{ errors.email }}
-        </p>
-      </div>
+      <el-form label-position="top" @submit.prevent class="flex flex-col gap-4">
+        <!-- Email -->
+        <el-form-item
+          label="Email"
+          :error="errors.email"
+        >
+          <el-input
+            v-model="form.email"
+            type="email"
+            placeholder="name@example.com"
+            clearable
+          />
+        </el-form-item>
 
-      <!-- OTP -->
-      <div class="mb-5">
-        <label for="otp" class="block mb-2 text-sm font-medium text-gray-900">OTP Code</label>
-        <input
-          type="text"
-          id="otp"
-          v-model="form.otp"
-          placeholder="Enter your OTP code"
-          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-          focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-        />
-        <p v-if="errors.otp" class="text-red-500 text-sm mt-1">
-          {{ errors.otp }}
-        </p>
-      </div>
+        <!-- OTP -->
+        <el-form-item
+          label="OTP Code"
+          :error="errors.otp"
+        >
+          <el-input
+            v-model="form.otp"
+            type="text"
+            placeholder="Enter your OTP code"
+            maxlength="6"
+            clearable
+          >
+            <template #append>
+              <el-icon><i class="el-icon-key"></i></el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
 
-      <!-- Submit -->
-      <button
-        type="submit"
-        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 
-        focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm 
-        w-full px-5 py-2.5 text-center"
-        :disabled="loading"
-      >
-        <span v-if="loading">Logging in...</span>
-        <span v-else>Login</span>
-      </button>
-    </form>
+        <!-- Submit -->
+        <el-form-item>
+          <el-button
+            type="primary"
+            :loading="loading"
+            :disabled="loading"
+            class="w-full"
+            @click="submitForm"
+          >
+            <template v-if="!loading">Login</template>
+            <template v-else>Logging in...</template>
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
   `,
 });
