@@ -7,11 +7,19 @@ const {
   toRaw,
   ref,
 } = Vue;
+const { UploadFilled } = ElementPlusIconsVue;
 
 import { apiClient } from "../../utils/api.js";
 
 export default defineComponent({
   name: "PdfUploadForm",
+  components: {
+    "el-upload": ElementPlus.ElUpload,
+    "el-button": ElementPlus.ElButton,
+    "el-message": ElementPlus.ElMessage,
+    "el-icon": ElementPlus.ElIcon,
+    "upload-filled": UploadFilled,
+  },
   setup() {
     const file = ref(null);
     const loading = ref(false);
@@ -43,11 +51,36 @@ export default defineComponent({
 
     return { file, loading, message, handleFileChange, uploadPdf };
   },
-  template: `
-    <div class="mb-4">
-      <input type="file" accept="application/pdf" @change="handleFileChange" />
-      <el-button type="primary" :loading="loading" @click="uploadPdf">Upload PDF</el-button>
+  template: /*html*/ `
+    <div class="mb-4 bg-slate-100 rounded-md shadow-md p-4">
+  
+      
       <p v-if="message">{{ message }}</p>
+
+      <el-upload
+        class="upload-demo"
+        drag
+        
+        multiple
+        :before-upload="beforeUpload"
+        :on-change="handleChange"
+        :on-success="handleSuccess"
+        :on-error="handleError"
+      >
+        <el-icon class="el-icon--upload">
+          <upload-filled />
+        </el-icon>
+        <div class="el-upload__text">
+          Drop PDF here or <em>click to upload</em>
+        </div>
+        <template #tip>
+          <div class="el-upload__tip">
+            PDF files only
+          </div>
+        </template>
+      </el-upload>
+
+      <el-button type="primary" :loading="loading" @click="uploadPdf">Upload PDF</el-button>
     </div>
   `,
 });

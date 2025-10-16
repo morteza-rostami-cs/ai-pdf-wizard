@@ -11,6 +11,9 @@ import { apiClient } from "./utils/api.js";
 const { createApp, onMounted, onBeforeMount, watch, toRaw } = Vue;
 const { createRouter, createWebHashHistory } = VueRouter;
 
+// socket
+import { socketStore } from "./stores/socketStore.js";
+
 //define routes
 const routes = [
   { path: "/", component: HomePage },
@@ -80,6 +83,18 @@ const App = {
       await fetchAuthUser();
     });
 
+    // connect to socket
+    socketStore.connect();
+
+    // watch socketStore data
+    watch(
+      () => socketStore.state.messages,
+      (updatedMessages) => {
+        console.log("new socket message: ", updatedMessages[0]);
+      },
+      { deep: true }
+    );
+
     // watch for userStore change
     watch(
       () => userStore.user,
@@ -88,6 +103,8 @@ const App = {
       },
       { immediate: true } // optional: run once on load
     );
+
+    return { socketStore };
   },
 
   template: /*html*/ `

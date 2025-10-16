@@ -409,7 +409,7 @@ async def upload_pdf(
     user=auth_user
   )
 
-  return dict(message="✅ pdf upload success")
+  return dict(message="✅ pdf upload in progress.")
 
 
 # route /pdfs/my-pdfs
